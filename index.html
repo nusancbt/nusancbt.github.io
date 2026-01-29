@@ -2,23 +2,31 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0"/>
   <title>UJIAN ONLINE CBT</title>
   <link rel="icon" href="https://upload.wikimedia.org/wikipedia/commons/9/98/Kota_Bengkulu.png" />
+  
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
   <style>
+    /* --- CSS DASAR --- */
     html, body {
       margin: 0;
       padding: 0;
       width: 100%;
       height: 100%;
-      background-color: #eee;
-      overflow: hidden; /* Mencegah scroll ganda */
+      background-color: #333;
+      overflow: hidden;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     }
 
     .iframe-container {
       width: 100%;
-      height: 100dvh; /* Menggunakan dvh agar pas di mobile browser */
+      height: 100dvh; 
       overflow: hidden;
+      position: relative;
+      z-index: 1;
     }
 
     iframe {
@@ -26,14 +34,151 @@
       width: 100%;
       height: 100%;
       border: none;
+      background: white;
     }
+
+    /* --- TOMBOL SETTINGS --- */
+    .fab-settings {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      width: 50px;
+      height: 50px;
+      background-color: rgba(0,0,0,0.3);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      cursor: pointer;
+      z-index: 999;
+      transition: background 0.3s;
+      border: 1px solid rgba(255,255,255,0.2);
+    }
+    .fab-settings:hover {
+      background-color: rgba(0,0,0,0.8);
+    }
+
+    /* --- MODAL --- */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.85);
+      z-index: 1000;
+      display: none;
+      justify-content: center;
+      align-items: center;
+      backdrop-filter: blur(5px);
+    }
+
+    .modal-content {
+      background: #fff;
+      width: 90%;
+      max-width: 500px;
+      max-height: 90vh;
+      border-radius: 12px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+    }
+
+    .modal-header {
+      background: #2563eb;
+      color: white;
+      padding: 15px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-weight: bold;
+    }
+
+    .close-btn { cursor: pointer; font-size: 1.2rem; }
+    .modal-body { padding: 20px; overflow-y: auto; }
+
+    /* --- FORM ELEMENTS --- */
+    .form-group { margin-bottom: 15px; }
+    .form-group label { display: block; margin-bottom: 5px; font-size: 0.9rem; color: #555; font-weight: 600; }
+    .form-control {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      box-sizing: border-box;
+      font-size: 1rem;
+    }
+    .form-text { font-size: 0.8rem; color: #666; margin-top: 3px; display: block; }
+    
+    .btn {
+      padding: 10px 15px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: 0.2s;
+    }
+    .btn-primary { background: #2563eb; color: white; width: 100%; }
+    .btn-success { background: #16a34a; color: white; }
+    .btn-danger { background: #dc2626; color: white; }
+    .btn-warning { background: #ca8a04; color: white; }
+    .btn-github { background: #24292f; color: white; width: 100%; margin-bottom: 10px;}
+    .btn-sm { padding: 5px 10px; font-size: 0.8rem; }
+    
+    .flex-row { display: flex; gap: 10px; margin-top: 10px; }
+
+    /* --- LIST & PANELS --- */
+    .link-list { list-style: none; padding: 0; margin-top: 20px; border-top: 1px solid #eee; }
+    .link-item {
+      padding: 15px;
+      border-bottom: 1px solid #eee;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #f9fafb;
+    }
+    .link-item.active { background: #eff6ff; border-left: 4px solid #2563eb; }
+    .link-info { flex: 1; overflow: hidden; }
+    .link-title { font-weight: bold; font-size: 1rem; margin-bottom: 4px; }
+    .link-url { font-size: 0.75rem; color: #666; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .link-actions { display: flex; gap: 5px; margin-left: 10px; }
+
+    #login-panel { text-align: center; }
+    #crud-panel { display: none; }
+    #github-config-panel { display: none; background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #e9ecef; }
+    
+    .error-msg { color: red; font-size: 0.85rem; margin-top: 5px; display: none; }
+    .status-badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 0.7rem; font-weight: bold; }
+    .status-local { background: #e5e7eb; color: #374151; }
+    .status-github { background: #dcfce7; color: #166534; }
+    
+    /* Loading Overlay */
+    #loadingOverlay {
+        position: absolute; top:0; left:0; width:100%; height:100%;
+        background: rgba(255,255,255,0.8);
+        display: none; justify-content: center; align-items: center;
+        z-index: 1001; flex-direction: column;
+    }
+    .spinner { border: 4px solid #f3f3f3; border-top: 4px solid #2563eb; border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
   </style>
 </head>
 <body>
+
+  <!-- LOADING OVERLAY (GLOBAL) -->
+  <div id="loadingOverlay">
+    <div class="spinner"></div>
+    <div style="margin-top:10px; font-weight:bold; color:#333;" id="loadingText">Memproses...</div>
+  </div>
+
+  <!-- CONTAINER IFRAME UTAMA -->
   <div class="iframe-container">
     <iframe
       id="app"
-      src="https://script.google.com/macros/s/AKfycbxsw4cc-t9V-z5WHP6pWMBbdSoe-fzt_Y23MyD6zJXYID52yrGKuNQRQS9ByYg8DRlW/exec"
+      src="" 
       scrolling="yes"
       allowfullscreen="true"
       webkitallowfullscreen="true"
@@ -41,5 +186,454 @@
       allow="fullscreen; camera; microphone; display-capture; geolocation;">
     </iframe>
   </div>
+
+  <!-- TOMBOL PENGATURAN -->
+  <div class="fab-settings" onclick="openSettings()">
+    <i class="fas fa-cog"></i>
+  </div>
+
+  <!-- MODAL PENGATURAN -->
+  <div class="modal-overlay" id="settingsModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <span><i class="fas fa-tools"></i> Pengaturan Ujian</span>
+        <span class="close-btn" onclick="closeSettings()"><i class="fas fa-times"></i></span>
+      </div>
+      
+      <div class="modal-body">
+        
+        <!-- PANEL LOGIN -->
+        <div id="login-panel">
+          <div style="margin-bottom: 20px;">
+            <i class="fas fa-lock fa-3x" style="color: #ccc;"></i>
+            <p>Masukkan PIN Admin</p>
+          </div>
+          <div class="form-group">
+            <input type="password" id="pinInput" class="form-control" placeholder="PIN Default: 1234" onkeypress="handleEnter(event)">
+            <p id="pinError" class="error-msg">PIN Salah!</p>
+          </div>
+          <button class="btn btn-primary" onclick="checkPin()">Masuk Menu Admin</button>
+        </div>
+
+        <!-- PANEL MENU UTAMA -->
+        <div id="crud-panel">
+            
+            <!-- GitHub Toggle -->
+            <button class="btn btn-github" onclick="toggleGithubConfig()">
+                <i class="fab fa-github"></i> Konfigurasi Penyimpanan GitHub
+            </button>
+
+            <!-- GitHub Config Form -->
+            <div id="github-config-panel">
+                <h5 style="margin:0 0 10px 0;">Setup GitHub Repository</h5>
+                <div class="form-group">
+                    <label>Username GitHub</label>
+                    <input type="text" id="ghUser" class="form-control" placeholder="Contoh: user123">
+                </div>
+                <div class="form-group">
+                    <label>Nama Repository</label>
+                    <input type="text" id="ghRepo" class="form-control" placeholder="Contoh: cbt-data">
+                </div>
+                <div class="form-group">
+                    <label>Path/Nama File (JSON)</label>
+                    <input type="text" id="ghPath" class="form-control" value="cbt_data.json" placeholder="cbt_data.json">
+                </div>
+                <div class="form-group">
+                    <label>Personal Access Token (PAT)</label>
+                    <input type="password" id="ghToken" class="form-control" placeholder="ghp_xxxxxxxxxxxx">
+                    <small class="form-text">Butuh permission: <b>repo</b> (jika private) atau <b>public_repo</b>.</small>
+                </div>
+                <div class="flex-row">
+                    <button class="btn btn-primary btn-sm" onclick="saveGithubConfig()">Simpan & Load</button>
+                    <button class="btn btn-warning btn-sm" onclick="toggleGithubConfig()">Tutup</button>
+                </div>
+            </div>
+
+            <!-- Form Tambah/Edit -->
+            <div style="background: #f0fdf4; padding: 15px; border-radius: 8px; border: 1px solid #bbf7d0;">
+                <h4 style="margin-top:0; margin-bottom:10px;">Tambah/Edit Link</h4>
+                <input type="hidden" id="editIndex"> 
+                <div class="form-group">
+                <input type="text" id="examName" class="form-control" placeholder="Nama Ujian">
+                </div>
+                <div class="form-group">
+                <input type="text" id="examUrl" class="form-control" placeholder="URL Google Script / Form">
+                </div>
+                <div class="flex-row">
+                <button class="btn btn-success" style="flex:1" onclick="saveExam()">Simpan</button>
+                <button class="btn btn-warning" style="flex:1" onclick="resetForm()">Reset</button>
+                </div>
+            </div>
+
+            <!-- Daftar Link -->
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:20px;">
+                <h4 style="margin:0;">Daftar Link</h4>
+                <span id="storageStatus" class="status-badge status-local">Local Storage</span>
+            </div>
+            
+            <ul class="link-list" id="linkListContainer">
+                <!-- Item akan digenerate via Javascript -->
+            </ul>
+            
+            <!-- Tombol Sync Manual -->
+            <button id="btnPush" class="btn btn-primary" style="margin-top:10px; display:none;" onclick="pushToGithub()">
+                <i class="fas fa-cloud-upload-alt"></i> Upload Perubahan ke GitHub
+            </button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // --- KONFIGURASI ---
+    const DEFAULT_PIN = "1234"; 
+    const LOCAL_DATA_KEY = "cbt_exam_links";
+    const LOCAL_ACTIVE_KEY = "cbt_active_index";
+    const GITHUB_CONF_KEY = "cbt_github_conf";
+    
+    // --- STATE ---
+    let examData = [];
+    let activeIndex = 0;
+    let ghConfig = { user: '', repo: '', path: 'cbt_data.json', token: '' };
+    let currentSha = null; // Diperlukan untuk update file di GitHub
+
+    // --- INITIALIZATION ---
+    window.onload = function() {
+      loadLocalConfig(); // Load Github config if exists
+      // Coba load data. Prioritas: GitHub -> LocalStorage
+      initDataLoad();
+    };
+
+    function loadLocalConfig() {
+        const conf = localStorage.getItem(GITHUB_CONF_KEY);
+        if(conf) {
+            ghConfig = JSON.parse(conf);
+            // Isi form
+            document.getElementById('ghUser').value = ghConfig.user;
+            document.getElementById('ghRepo').value = ghConfig.repo;
+            document.getElementById('ghPath').value = ghConfig.path;
+            document.getElementById('ghToken').value = ghConfig.token;
+        }
+    }
+
+    async function initDataLoad() {
+        // Jika ada config GitHub, coba load dari sana
+        if(ghConfig.user && ghConfig.repo && ghConfig.token) {
+            await loadFromGithub();
+        } else {
+            loadFromLocal();
+        }
+        renderIframe();
+    }
+
+    // --- GITHUB API OPERATIONS ---
+
+    async function loadFromGithub() {
+        showLoading(true, "Download data dari GitHub...");
+        const url = `https://api.github.com/repos/${ghConfig.user}/${ghConfig.repo}/contents/${ghConfig.path}`;
+        
+        try {
+            const response = await fetch(url, {
+                headers: {
+                    'Authorization': `token ${ghConfig.token}`,
+                    'Accept': 'application/vnd.github.v3+json'
+                },
+                cache: "no-store" 
+            });
+
+            if (response.status === 404) {
+                // File belum ada, kita pakai data lokal lalu nanti buat baru
+                console.log("File belum ada di GitHub, menggunakan data lokal.");
+                loadFromLocal(); 
+                updateStatusBadge('github-new');
+            } else if (response.ok) {
+                const data = await response.json();
+                currentSha = data.sha; // Simpan SHA untuk update nanti
+                // Decode content (Base64 -> UTF8)
+                const content = decodeUnicode(data.content);
+                const parsed = JSON.parse(content);
+                
+                examData = parsed.examData || [];
+                activeIndex = parsed.activeIndex || 0;
+                
+                updateStatusBadge('github');
+                console.log("Data loaded from GitHub");
+            } else {
+                throw new Error("Gagal load GitHub: " + response.statusText);
+            }
+        } catch (error) {
+            alert("Error GitHub: " + error.message + ". Kembali ke Local Storage.");
+            loadFromLocal();
+        } finally {
+            showLoading(false);
+        }
+    }
+
+    async function pushToGithub() {
+        if(!ghConfig.user || !ghConfig.token) {
+            alert("Konfigurasi GitHub belum lengkap!");
+            return;
+        }
+
+        showLoading(true, "Menyimpan ke GitHub...");
+        const url = `https://api.github.com/repos/${ghConfig.user}/${ghConfig.repo}/contents/${ghConfig.path}`;
+        
+        // Structure data to save
+        const contentObj = {
+            examData: examData,
+            activeIndex: activeIndex,
+            lastUpdated: new Date().toISOString()
+        };
+        
+        // Encode to Base64 safe for UTF8
+        const contentBase64 = encodeUnicode(JSON.stringify(contentObj, null, 2));
+
+        const body = {
+            message: "Update Exam Data via CBT Admin",
+            content: contentBase64
+        };
+
+        if (currentSha) {
+            body.sha = currentSha; // Update existing file
+        }
+
+        try {
+            const response = await fetch(url, {
+                method: 'PUT',
+                headers: {
+                    'Authorization': `token ${ghConfig.token}`,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(body)
+            });
+
+            if(response.ok) {
+                const resData = await response.json();
+                currentSha = resData.content.sha; // Update SHA baru
+                updateStatusBadge('github');
+                alert("Berhasil disimpan ke GitHub!");
+            } else {
+                const err = await response.json();
+                throw new Error(err.message);
+            }
+        } catch (e) {
+            alert("Gagal simpan ke GitHub: " + e.message);
+        } finally {
+            showLoading(false);
+        }
+    }
+
+    // --- LOCAL OPERATIONS ---
+
+    function loadFromLocal() {
+        const storedData = localStorage.getItem(LOCAL_DATA_KEY);
+        const storedIndex = localStorage.getItem(LOCAL_ACTIVE_KEY);
+
+        if (storedData) {
+            examData = JSON.parse(storedData);
+        } else {
+            // Default Data
+            examData = [{ name: "Ujian Utama (Default)", url: "https://script.google.com/macros/s/AKfycbxsw4cc-t9V-z5WHP6pWMBbdSoe-fzt_Y23MyD6zJXYID52yrGKuNQRQS9ByYg8DRlW/exec" }];
+        }
+
+        if (storedIndex !== null) activeIndex = parseInt(storedIndex);
+        if (activeIndex >= examData.length) activeIndex = 0;
+        
+        updateStatusBadge('local');
+    }
+
+    function saveToLocal() {
+        localStorage.setItem(LOCAL_DATA_KEY, JSON.stringify(examData));
+        localStorage.setItem(LOCAL_ACTIVE_KEY, activeIndex);
+    }
+
+    // --- HELPER FUNCTIONS ---
+
+    // Utilitas untuk menghandle Base64 dengan karakter Unicode (Emoji dll)
+    function encodeUnicode(str) {
+        return btoa(encodeURIComponent(str).replace(/%([0-9A-F]{2})/g,
+            function toSolidBytes(match, p1) {
+                return String.fromCharCode('0x' + p1);
+        }));
+    }
+
+    function decodeUnicode(str) {
+        return decodeURIComponent(atob(str).split('').map(function(c) {
+            return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+        }).join(''));
+    }
+
+    function updateStatusBadge(type) {
+        const badge = document.getElementById('storageStatus');
+        const btnPush = document.getElementById('btnPush');
+        
+        if (type === 'github' || type === 'github-new') {
+            badge.className = 'status-badge status-github';
+            badge.innerText = 'Connected: GitHub';
+            btnPush.style.display = 'block'; // Tampilkan tombol upload
+        } else {
+            badge.className = 'status-badge status-local';
+            badge.innerText = 'Storage: Local Browser';
+            btnPush.style.display = 'none'; // Sembunyikan tombol upload
+        }
+    }
+
+    function showLoading(show, text="Loading...") {
+        const overlay = document.getElementById('loadingOverlay');
+        const txt = document.getElementById('loadingText');
+        txt.innerText = text;
+        overlay.style.display = show ? 'flex' : 'none';
+    }
+
+    // --- CRUD UI HANDLERS ---
+    
+    function saveExam() {
+      const name = document.getElementById('examName').value.trim();
+      const url = document.getElementById('examUrl').value.trim();
+      const idx = document.getElementById('editIndex').value;
+
+      if (!name || !url) { alert("Data tidak lengkap!"); return; }
+
+      if (idx !== "") {
+        examData[idx] = { name, url };
+      } else {
+        examData.push({ name, url });
+      }
+
+      // Selalu simpan ke local sebagai backup/cache
+      saveToLocal();
+      renderList();
+      resetForm();
+      if (idx == activeIndex) renderIframe();
+      
+      // Prompt user untuk push ke GitHub
+      if(ghConfig.token) {
+          if(confirm("Data lokal tersimpan. Upload ke GitHub sekarang?")) {
+              pushToGithub();
+          }
+      }
+    }
+
+    function deleteExam(index) {
+      if(confirm(`Hapus "${examData[index].name}"?`)) {
+        if (examData.length <= 1) return alert("Minimal harus ada 1 link.");
+        
+        examData.splice(index, 1);
+        if (index <= activeIndex) activeIndex = Math.max(0, activeIndex - 1);
+        if (index === activeIndex) renderIframe();
+
+        saveToLocal();
+        renderList();
+        
+        if(ghConfig.token) pushToGithub(); // Auto push on delete
+      }
+    }
+
+    function activateExam(index) {
+      activeIndex = index;
+      saveToLocal();
+      renderList();
+      renderIframe();
+      alert(`Ujian aktif diubah.`);
+      if(ghConfig.token) pushToGithub(); // Auto push on change active
+    }
+
+    function editExam(index) {
+      document.getElementById('examName').value = examData[index].name;
+      document.getElementById('examUrl').value = examData[index].url;
+      document.getElementById('editIndex').value = index;
+      document.querySelector('#crud-panel h4').innerText = "Edit Link";
+    }
+
+    function resetForm() {
+      document.getElementById('examName').value = "";
+      document.getElementById('examUrl').value = "";
+      document.getElementById('editIndex').value = "";
+      document.querySelector('#crud-panel h4').innerText = "Tambah Link Baru";
+    }
+
+    function renderList() {
+      const listContainer = document.getElementById('linkListContainer');
+      listContainer.innerHTML = '';
+      examData.forEach((item, index) => {
+        const li = document.createElement('li');
+        li.className = `link-item ${index === activeIndex ? 'active' : ''}`;
+        li.innerHTML = `
+          <div class="link-info">
+            <div class="link-title">
+              ${item.name} 
+              ${index === activeIndex ? '<span style="font-size:0.7em; background:#2563eb; color:white; padding:2px 6px; border-radius:4px; margin-left:5px;">AKTIF</span>' : ''}
+            </div>
+            <div class="link-url">${item.url}</div>
+          </div>
+          <div class="link-actions">
+            ${index !== activeIndex ? `<button class="btn btn-sm btn-primary" onclick="activateExam(${index})"><i class="fas fa-play"></i></button>` : ''}
+            <button class="btn btn-sm btn-warning" onclick="editExam(${index})"><i class="fas fa-edit"></i></button>
+            <button class="btn btn-sm btn-danger" onclick="deleteExam(${index})"><i class="fas fa-trash"></i></button>
+          </div>
+        `;
+        listContainer.appendChild(li);
+      });
+    }
+
+    function renderIframe() {
+      const iframe = document.getElementById('app');
+      if (examData.length > 0 && examData[activeIndex]) {
+        iframe.src = examData[activeIndex].url;
+      } else {
+        iframe.src = "about:blank";
+      }
+    }
+
+    // --- SETTINGS UI HANDLERS ---
+    
+    function toggleGithubConfig() {
+        const panel = document.getElementById('github-config-panel');
+        panel.style.display = panel.style.display === 'none' || panel.style.display === '' ? 'block' : 'none';
+    }
+
+    function saveGithubConfig() {
+        const user = document.getElementById('ghUser').value.trim();
+        const repo = document.getElementById('ghRepo').value.trim();
+        const path = document.getElementById('ghPath').value.trim() || 'cbt_data.json';
+        const token = document.getElementById('ghToken').value.trim();
+
+        if(!user || !repo || !token) {
+            alert("Harap isi Username, Repo, dan Token!");
+            return;
+        }
+
+        ghConfig = { user, repo, path, token };
+        localStorage.setItem(GITHUB_CONF_KEY, JSON.stringify(ghConfig));
+        
+        // Coba load data segera
+        loadFromGithub();
+    }
+
+    function openSettings() {
+      document.getElementById('settingsModal').style.display = 'flex';
+      document.getElementById('login-panel').style.display = 'block';
+      document.getElementById('crud-panel').style.display = 'none';
+      document.getElementById('pinInput').value = '';
+      document.getElementById('pinError').style.display = 'none';
+    }
+
+    function closeSettings() {
+      document.getElementById('settingsModal').style.display = 'none';
+    }
+
+    function checkPin() {
+      if (document.getElementById('pinInput').value === DEFAULT_PIN) {
+        document.getElementById('login-panel').style.display = 'none';
+        document.getElementById('crud-panel').style.display = 'block';
+        renderList();
+      } else {
+        document.getElementById('pinError').style.display = 'block';
+      }
+    }
+    
+    function handleEnter(e) { if(e.key === 'Enter') checkPin(); }
+  </script>
 </body>
 </html>
