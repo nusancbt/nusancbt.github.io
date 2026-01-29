@@ -1,108 +1,45 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Aplikasi Web Google Script</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <style>
-        /* Sembunyikan Scrollbar (Chrome, Safari, Opera) */
-        ::-webkit-scrollbar {
-            display: none;
-        }
-        
-        /* Sembunyikan Scrollbar (IE, Edge, Firefox) */
-        * {
-            -ms-overflow-style: none;  /* IE and Edge */
-            scrollbar-width: none;  /* Firefox */
-        }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>UJIAN ONLINE CBT</title>
+  <link rel="icon" href="https://upload.wikimedia.org/wikipedia/commons/9/98/Kota_Bengkulu.png" />
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      background-color: #eee;
+      overflow: hidden; /* Mencegah scroll ganda */
+    }
 
-        /* Iframe container height calculation */
-        .app-container {
-            height: 100vh; /* Full viewport height */
-        }
-        
-        /* Loader animation */
-        .loader {
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #3b82f6;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            animation: spin 1s linear infinite;
-        }
+    .iframe-container {
+      width: 100%;
+      height: 100dvh; /* Menggunakan dvh agar pas di mobile browser */
+      overflow: hidden;
+    }
 
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-    </style>
+    iframe {
+      display: block;
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+  </style>
 </head>
-<body class="bg-gray-100 font-sans overflow-hidden h-screen flex flex-col text-slate-800">
-
-    <!-- Main Content Area -->
-    <main class="flex-1 relative app-container w-full bg-white">
-        
-        <!-- Loading Indicator Overlay -->
-        <div id="loadingOverlay" class="absolute inset-0 bg-white z-20 flex flex-col items-center justify-center">
-            <div class="loader mb-4"></div>
-            <p class="text-gray-500 font-medium animate-pulse">Memuat Data...</p>
-        </div>
-
-        <!-- Error / Info Message (Hidden by default) -->
-        <div id="errorMessage" class="hidden absolute inset-0 bg-gray-50 z-10 flex flex-col items-center justify-center p-6 text-center">
-            <div class="text-red-500 text-5xl mb-4">
-                <i class="fa-solid fa-circle-exclamation"></i>
-            </div>
-            <h2 class="text-xl font-bold text-gray-800 mb-2">Tidak dapat menampilkan pratinjau</h2>
-            <p class="text-gray-600 max-w-md mb-6">
-                Google sering membatasi situs web mereka untuk ditampilkan di dalam website lain.
-            </p>
-            <a href="https://script.google.com/macros/s/AKfycbxsw4cc-t9V-z5WHP6pWMBbdSoe-fzt_Y23MyD6zJXYID52yrGKuNQRQS9ByYg8DRlW/exec" 
-               target="_blank"
-               class="bg-blue-600 text-white px-6 py-3 rounded-lg font-bold shadow hover:bg-blue-700 transition">
-                Buka Aplikasi Sekarang
-            </a>
-        </div>
-
-        <!-- The Iframe -->
-        <iframe 
-            id="appFrame"
-            src="https://script.google.com/macros/s/AKfycbxsw4cc-t9V-z5WHP6pWMBbdSoe-fzt_Y23MyD6zJXYID52yrGKuNQRQS9ByYg8DRlW/exec" 
-            class="w-full h-full border-none"
-            allow="geolocation; microphone; camera; fullscreen"
-            sandbox="allow-forms allow-scripts allow-same-origin allow-popups allow-top-navigation"
-            onerror="showError()"
-        ></iframe>
-    </main>
-
-    <script>
-        const iframe = document.getElementById('appFrame');
-        const loader = document.getElementById('loadingOverlay');
-        const errorMsg = document.getElementById('errorMessage');
-
-        // Event listener saat iframe selesai loading
-        iframe.onload = function() {
-            // Sembunyikan loader dengan sedikit delay agar transisi halus
-            setTimeout(() => {
-                loader.classList.add('hidden');
-            }, 800);
-        };
-
-        // Deteksi jika load memakan waktu terlalu lama (kemungkinan diblokir X-Frame-Options)
-        setTimeout(() => {
-            // Jika loader masih ada setelah 15 detik, mungkin koneksi lambat atau script berat.
-            // Kita tidak melakukan apa-apa karena user ingin tampilan bersih,
-            // tapi jika gagal total, error message (diatas) bisa muncul manual jika src gagal.
-        }, 15000);
-
-        // Script untuk memastikan layout responsif pada mobile
-        window.addEventListener('resize', () => {
-            const vh = window.innerHeight * 0.01;
-            document.documentElement.style.setProperty('--vh', `${vh}px`);
-        });
-    </script>
+<body>
+  <div class="iframe-container">
+    <iframe
+      id="app"
+      src="https://script.google.com/macros/s/AKfycbxsw4cc-t9V-z5WHP6pWMBbdSoe-fzt_Y23MyD6zJXYID52yrGKuNQRQS9ByYg8DRlW/exec"
+      scrolling="yes"
+      allowfullscreen="true"
+      webkitallowfullscreen="true"
+      mozallowfullscreen="true"
+      allow="fullscreen; camera; microphone; display-capture; geolocation;">
+    </iframe>
+  </div>
 </body>
-
 </html>
