@@ -3,8 +3,12 @@
     {
       "name": "Ujian Utama (Default)",
       "url": "https://script.google.com/macros/s/AKfycbxsw4cc-t9V-z5WHP6pWMBbdSoe-fzt_Y23MyD6zJXYID52yrGKuNQRQS9ByYg8DRlW/exec"
+    },
+    {
+      "name": "yt",
+      "url": "https://www.youtube.com/"
     }
   ],
   "activeIndex": 0,
-  "lastUpdated": "2026-01-29T08:14:51.835Z"
+  "lastUpdated": "2026-01-29T08:17:23.738Z"
 }
