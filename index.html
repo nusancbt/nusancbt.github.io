@@ -6,6 +6,7 @@
   <title>UJIAN ONLINE CBT</title>
   <link rel="icon" href="https://upload.wikimedia.org/wikipedia/commons/9/98/Kota_Bengkulu.png" />
   
+  
   <!-- Font Awesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
@@ -209,7 +210,7 @@
             <p>Masukkan PIN Admin</p>
           </div>
           <div class="form-group">
-            <input type="password" id="pinInput" class="form-control" placeholder="PIN Default: 1234" onkeypress="handleEnter(event)">
+            <input type="password" id="pinInput" class="form-control" placeholder="Masukan PIN" onkeypress="handleEnter(event)">
             <p id="pinError" class="error-msg">PIN Salah!</p>
           </div>
           <button class="btn btn-primary" onclick="checkPin()">Masuk Menu Admin</button>
@@ -287,7 +288,7 @@
 
   <script>
     // --- KONFIGURASI ---
-    const DEFAULT_PIN = "1234"; 
+    const DEFAULT_PIN = "112233"; 
     const LOCAL_DATA_KEY = "cbt_exam_links";
     const LOCAL_ACTIVE_KEY = "cbt_active_index";
     const GITHUB_CONF_KEY = "cbt_github_conf";
