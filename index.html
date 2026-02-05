@@ -4,13 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard Siswa Terintegrasi</title>
-    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- FontAwesome for Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <!-- SweetAlert2 -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     
     <style>
@@ -20,37 +16,25 @@
         .custom-scrollbar::-webkit-scrollbar-track { background: #1e293b; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #475569; border-radius: 5px; }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #64748b; }
-        
-        .iframe-container {
-            position: relative; width: 100%; height: 100%; overflow: hidden;
-            background-color: white; border-radius: 0; 
-        }
+        .iframe-container { position: relative; width: 100%; height: 100%; overflow: hidden; background-color: white; border-radius: 0; }
         iframe { width: 100%; height: 100%; border: none; }
-        
         .nav-item.active { background-color: #2563eb; color: white; }
         .nav-item.active i { color: white; }
-
-        .loader {
-            border: 4px solid #f3f3f3; border-top: 4px solid #3498db;
-            border-radius: 50%; width: 40px; height: 40px;
-            animation: spin 1s linear infinite; position: absolute;
-            top: 50%; left: 50%; transform: translate(-50%, -50%);
-            display: none; z-index: 10;
-        }
-        @keyframes spin {
-            0% { transform: translate(-50%, -50%) rotate(0deg); }
-            100% { transform: translate(-50%, -50%) rotate(360deg); }
-        }
+        .loader { border: 4px solid #f3f3f3; border-top: 4px solid #3498db; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); display: none; z-index: 10; }
+        @keyframes spin { 0% { transform: translate(-50%, -50%) rotate(0deg); } 100% { transform: translate(-50%, -50%) rotate(360deg); } }
         .modal-overlay { background-color: rgba(0, 0, 0, 0.5); backdrop-filter: blur(2px); }
-        
-        /* Tab Styles */
         .tab-btn.active { border-bottom: 2px solid #2563eb; color: #2563eb; font-weight: 600; }
         .tab-btn { color: #6b7280; font-weight: 500; }
     </style>
 </head>
 <body class="bg-gray-100 h-screen overflow-hidden flex text-gray-800">
 
-    <!-- Mobile Overlay -->
+    <!-- Loading Overlay Fullscreen (Initial Load) -->
+    <div id="app-loading" class="fixed inset-0 z-[60] bg-white flex flex-col items-center justify-center">
+        <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-blue-600 mb-4"></div>
+        <p class="text-gray-600 font-medium">Menghubungkan ke Database...</p>
+    </div>
+
     <div id="mobile-overlay" onclick="toggleSidebar()" class="fixed inset-0 bg-black opacity-50 z-20 hidden lg:hidden"></div>
 
     <!-- Password Modal -->
@@ -77,7 +61,6 @@
 
     <!-- Sidebar -->
     <aside id="sidebar" class="bg-slate-900 text-slate-300 w-64 flex-shrink-0 fixed inset-y-0 left-0 z-30 transform -translate-x-full lg:relative lg:translate-x-0 sidebar-transition flex flex-col h-full shadow-xl">
-        <!-- Logo -->
         <div class="h-16 flex items-center justify-center border-b border-slate-700 bg-slate-900 shadow-sm">
             <div class="flex items-center gap-3">
                 <div class="bg-blue-600 text-white p-1.5 rounded-lg">
@@ -86,9 +69,8 @@
                 <h1 class="text-xl font-bold text-white tracking-wide">NusanCBT</h1>
             </div>
         </div>
-        <!-- Profile -->
         <div class="p-4 border-b border-slate-700 bg-slate-800/50">
-            <div class="flex items-center gap-3">
+            <div class="flex items-center gap-3 mb-3">
                 <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" alt="User Avatar" class="w-10 h-10 rounded-full bg-slate-600 border-2 border-slate-500">
                 <div>
                     <p class="text-sm font-semibold text-white">Siswa Peserta</p>
@@ -96,18 +78,13 @@
                 </div>
             </div>
         </div>
-        <!-- Navigation -->
         <nav class="flex-1 overflow-y-auto custom-scrollbar p-3 space-y-1">
             <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2 mt-2 px-3">Menu Utama</div>
-            
             <button onclick="switchView('home')" id="btn-home" class="nav-item w-full flex items-center gap-3 px-3 py-3 rounded-lg hover:bg-slate-800 transition-colors active">
                 <i class="fa-solid fa-house w-5 text-center text-slate-400 transition-colors"></i>
                 <span class="text-sm font-medium">Dashboard</span>
             </button>
-
-            <!-- Dynamic Menu Container -->
             <div id="sidebar-dynamic-menu"></div>
-
             <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2 mt-6 px-3">Lainnya</div>
             <button onclick="switchView('settings')" id="btn-settings" class="nav-item w-full flex items-center gap-3 px-3 py-3 rounded-lg hover:bg-slate-800 transition-colors">
                 <i class="fa-solid fa-gear w-5 text-center text-slate-400 transition-colors"></i>
@@ -122,7 +99,6 @@
 
     <!-- Main Content -->
     <main class="flex-1 flex flex-col h-full relative w-full">
-        <!-- Header -->
         <header class="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-4 lg:px-6 shadow-sm z-10">
             <div class="flex items-center gap-3">
                 <button onclick="toggleSidebar()" class="lg:hidden p-2 text-gray-600 hover:bg-gray-100 rounded-md">
@@ -135,35 +111,23 @@
                     <span id="digital-clock" class="text-sm font-mono font-bold text-blue-600">00:00:00</span>
                     <span id="current-date" class="text-xs text-gray-500">Senin, 1 Jan 2024</span>
                 </div>
-                <button onclick="toggleFullscreen()" class="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-full" title="Layar Penuh">
-                    <i id="fullscreen-icon" class="fa-solid fa-expand"></i>
-                </button>
+                <button onclick="toggleFullscreen()" class="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-full" title="Layar Penuh"><i id="fullscreen-icon" class="fa-solid fa-expand"></i></button>
             </div>
         </header>
 
-        <!-- Content Area -->
         <div id="content-area" class="flex-1 p-0 overflow-hidden relative bg-gray-50">
-            
             <div id="loader" class="loader"></div>
 
-            <!-- 1. Home Dashboard View -->
             <div id="view-home" class="h-full overflow-y-auto p-4 lg:p-6 animate-fade-in">
-                <!-- Stats Cards (Dynamic) -->
-                <div id="home-cards-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-6">
-                    <!-- Cards injected by JS -->
-                </div>
-
-                <!-- Info Section -->
+                <div id="home-cards-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-6"></div>
                 <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
                     <h3 class="text-lg font-bold text-gray-800 mb-4 border-b pb-2 flex justify-between items-center">
-                        Pengumuman Sekolah
-                        <span class="text-xs font-normal text-gray-500 bg-gray-100 px-2 py-1 rounded">Terbaru</span>
+                        Pengumuman Sekolah <span class="text-xs font-normal text-gray-500 bg-gray-100 px-2 py-1 rounded">Terbaru</span>
                     </h3>
                     <div id="announcement-list" class="space-y-4"></div>
                 </div>
             </div>
 
-            <!-- 2. Iframe Container -->
             <div id="view-iframe-wrapper" class="hidden w-full h-full bg-white">
                 <div class="iframe-container">
                     <iframe id="main-iframe" src="" allowfullscreen allow="camera; microphone; display-capture"></iframe>
@@ -175,165 +139,72 @@
                 </div>
             </div>
 
-            <!-- 3. Settings View (Unified) -->
             <div id="view-settings" class="hidden h-full overflow-y-auto p-4 lg:p-6 bg-gray-50">
                 <div class="max-w-5xl mx-auto">
-                    
-                    <!-- Tabs Header -->
                     <div class="flex border-b border-gray-200 mb-6 bg-white rounded-t-xl px-4 pt-4 shadow-sm">
-                        <button onclick="switchSettingsTab('menu')" id="tab-btn-menu" class="tab-btn active px-6 py-3 mr-2 focus:outline-none">
-                            <i class="fa-solid fa-list-check mr-2"></i> Menu & Link
-                        </button>
-                        <button onclick="switchSettingsTab('announcement')" id="tab-btn-announcement" class="tab-btn px-6 py-3 mr-2 focus:outline-none">
-                            <i class="fa-solid fa-bullhorn mr-2"></i> Pengumuman
-                        </button>
+                        <button onclick="switchSettingsTab('menu')" id="tab-btn-menu" class="tab-btn active px-6 py-3 mr-2 focus:outline-none"><i class="fa-solid fa-list-check mr-2"></i> Menu & Link</button>
+                        <button onclick="switchSettingsTab('announcement')" id="tab-btn-announcement" class="tab-btn px-6 py-3 mr-2 focus:outline-none"><i class="fa-solid fa-bullhorn mr-2"></i> Pengumuman</button>
                     </div>
 
-                    <!-- TAB 1: MENU SETTINGS -->
                     <div id="tab-content-menu" class="space-y-6">
-                        <!-- Add/Edit Menu Form -->
                         <div class="bg-white rounded-xl shadow-md p-6 border border-gray-200">
                             <div class="flex justify-between items-center mb-4">
-                                <h3 class="text-lg font-bold text-gray-800">Editor Menu Dashboard</h3>
+                                <h3 class="text-lg font-bold text-gray-800">Editor Menu</h3>
                                 <button onclick="resetMenuForm()" class="text-sm text-gray-500 hover:text-blue-600"><i class="fa-solid fa-rotate-left mr-1"></i> Reset</button>
                             </div>
                             <form onsubmit="saveMenu(event)" class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <input type="hidden" id="menu-edit-id">
-                                <div class="col-span-1">
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Nama Menu</label>
-                                    <input type="text" id="menu-title" class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Cth: Ujian Harian" required>
-                                </div>
-                                <div class="col-span-1">
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Link URL</label>
-                                    <input type="url" id="menu-url" class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 outline-none" placeholder="https://..." required>
-                                </div>
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Ikon</label>
-                                    <select id="menu-icon" class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 outline-none">
-                                        <option value="fa-desktop">Desktop / Komputer</option>
-                                        <option value="fa-book-open">Buku / Materi</option>
-                                        <option value="fa-pen-to-square">Tulis / Tugas</option>
-                                        <option value="fa-link">Tautan / Link</option>
-                                        <option value="fa-video">Video</option>
-                                        <option value="fa-file-pdf">Dokumen PDF</option>
-                                        <option value="fa-calendar-days">Kalender</option>
-                                        <option value="fa-user-graduate">Siswa</option>
-                                        <option value="fa-globe">Bola Dunia</option>
-                                    </select>
-                                </div>
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Warna Kartu</label>
-                                    <select id="menu-color" class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 outline-none">
-                                        <option value="blue">Biru (Blue)</option>
-                                        <option value="green">Hijau (Emerald)</option>
-                                        <option value="purple">Ungu (Purple)</option>
-                                        <option value="orange">Oranye (Orange)</option>
-                                        <option value="red">Merah (Red)</option>
-                                        <option value="cyan">Cyan (Teal)</option>
-                                        <option value="gray">Abu-abu (Slate)</option>
-                                    </select>
-                                </div>
-                                <div class="md:col-span-2">
-                                    <button type="submit" id="btn-save-menu" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors shadow">
-                                        <i class="fa-solid fa-plus mr-2"></i> Simpan Menu
-                                    </button>
-                                </div>
+                                <div class="col-span-1"><label class="block text-sm font-medium text-gray-700 mb-1">Nama Menu</label><input type="text" id="menu-title" class="w-full px-4 py-2 rounded-lg border border-gray-300 outline-none" placeholder="Cth: Ujian Harian" required></div>
+                                <div class="col-span-1"><label class="block text-sm font-medium text-gray-700 mb-1">Link URL</label><input type="url" id="menu-url" class="w-full px-4 py-2 rounded-lg border border-gray-300 outline-none" placeholder="https://..." required></div>
+                                <div><label class="block text-sm font-medium text-gray-700 mb-1">Ikon</label><select id="menu-icon" class="w-full px-4 py-2 rounded-lg border border-gray-300 outline-none"><option value="fa-desktop">Desktop</option><option value="fa-book-open">Buku</option><option value="fa-pen-to-square">Tulis</option><option value="fa-video">Video</option><option value="fa-file-pdf">Dokumen</option><option value="fa-globe">Bola Dunia</option></select></div>
+                                <div><label class="block text-sm font-medium text-gray-700 mb-1">Warna</label><select id="menu-color" class="w-full px-4 py-2 rounded-lg border border-gray-300 outline-none"><option value="blue">Biru</option><option value="green">Hijau</option><option value="purple">Ungu</option><option value="orange">Oranye</option><option value="red">Merah</option></select></div>
+                                <div class="md:col-span-2"><button type="submit" id="btn-save-menu" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors shadow"><i class="fa-solid fa-plus mr-2"></i> Simpan ke Database</button></div>
                             </form>
                         </div>
-
-                        <!-- Menu List -->
                         <div class="bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden">
-                            <div class="px-6 py-4 border-b border-gray-200 bg-gray-50 flex justify-between items-center">
-                                <h3 class="font-bold text-gray-700">Daftar Menu Aktif</h3>
-                                <button onclick="resetToDefaultMenus()" class="text-xs text-red-500 hover:text-red-700 underline">Reset ke Awal</button>
-                            </div>
-                            <div id="settings-menu-list" class="divide-y divide-gray-100">
-                                <!-- Generated by JS -->
-                            </div>
+                            <div class="px-6 py-4 border-b border-gray-200 bg-gray-50 flex justify-between items-center"><h3 class="font-bold text-gray-700">Daftar Menu Aktif</h3><button onclick="fetchFromDatabase()" class="text-xs text-blue-500 hover:text-blue-700 underline"><i class="fa-solid fa-rotate mr-1"></i>Refresh Data</button></div>
+                            <div id="settings-menu-list" class="divide-y divide-gray-100"></div>
                         </div>
                     </div>
 
-                    <!-- TAB 2: ANNOUNCEMENT SETTINGS -->
                     <div id="tab-content-announcement" class="hidden space-y-6">
-                        <!-- Add/Edit Announcement Form -->
                         <div class="bg-white rounded-xl shadow-md p-6 border border-gray-200">
                             <h3 class="text-lg font-bold text-gray-800 mb-4">Buat Pengumuman Baru</h3>
                             <form onsubmit="saveAnnouncement(event)" class="space-y-4">
                                 <input type="hidden" id="ann-edit-id">
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Judul</label>
-                                    <input type="text" id="ann-title" class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 outline-none" required>
-                                </div>
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Isi Pesan</label>
-                                    <textarea id="ann-content" rows="3" class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 outline-none" required></textarea>
-                                </div>
+                                <div><label class="block text-sm font-medium text-gray-700 mb-1">Judul</label><input type="text" id="ann-title" class="w-full px-4 py-2 rounded-lg border border-gray-300 outline-none" required></div>
+                                <div><label class="block text-sm font-medium text-gray-700 mb-1">Isi Pesan</label><textarea id="ann-content" rows="3" class="w-full px-4 py-2 rounded-lg border border-gray-300 outline-none" required></textarea></div>
                                 <div class="grid grid-cols-2 gap-4">
-                                    <div>
-                                        <label class="block text-sm font-medium text-gray-700 mb-1">Tipe</label>
-                                        <select id="ann-type" class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 outline-none">
-                                            <option value="info">Info Umum</option>
-                                            <option value="warning">Peringatan</option>
-                                            <option value="urgent">Penting</option>
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <label class="block text-sm font-medium text-gray-700 mb-1">Waktu</label>
-                                        <input type="text" id="ann-time" class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Cth: 1 Jam yang lalu">
-                                    </div>
+                                    <div><label class="block text-sm font-medium text-gray-700 mb-1">Tipe</label><select id="ann-type" class="w-full px-4 py-2 rounded-lg border border-gray-300 outline-none"><option value="info">Info Umum</option><option value="warning">Peringatan</option><option value="urgent">Penting</option></select></div>
+                                    <div><label class="block text-sm font-medium text-gray-700 mb-1">Waktu</label><input type="text" id="ann-time" class="w-full px-4 py-2 rounded-lg border border-gray-300 outline-none" placeholder="Cth: 1 Jam yang lalu"></div>
                                 </div>
-                                <button type="submit" id="btn-save-ann" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors shadow">
-                                    <i class="fa-solid fa-paper-plane mr-2"></i> Terbitkan
-                                </button>
+                                <button type="submit" id="btn-save-ann" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors shadow"><i class="fa-solid fa-paper-plane mr-2"></i> Terbitkan ke Database</button>
                             </form>
                         </div>
-                        
-                        <!-- Announcement List -->
                         <div class="bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden">
-                            <div class="px-6 py-4 border-b border-gray-200 bg-gray-50">
-                                <h3 class="font-bold text-gray-700">Arsip Pengumuman</h3>
-                            </div>
+                            <div class="px-6 py-4 border-b border-gray-200 bg-gray-50"><h3 class="font-bold text-gray-700">Arsip Pengumuman</h3></div>
                             <div id="settings-ann-list" class="divide-y divide-gray-100"></div>
                         </div>
                     </div>
-
                 </div>
             </div>
-
         </div>
     </main>
 
     <script>
-        // --- DATA DEFAULTS ---
-        const defaultAnnouncements = [
-            { id: 1, title: "Persiapan Ujian Semester", content: "Harap memeriksa jadwal ujian CBT.", type: "info", time: "10 Menit yang lalu" },
-            { id: 2, title: "Batas Pengumpulan Tugas", content: "Tugas Wajib dikumpulkan.", type: "warning", time: "1 Jam yang lalu" }
-        ];
-
-        const defaultMenus = [
-            { id: 'cbt', title: 'Ujian CBT', url: 'https://script.google.com/macros/s/AKfycbxsw4cc-t9V-z5WHP6pWMBbdSoe-fzt_Y23MyD6zJXYID52yrGKuNQRQS9ByYg8DRlW/exec', icon: 'fa-desktop', color: 'blue', isSystem: false }, 
-            { id: 'lms', title: 'Materi LMS', url: 'https://nusancbt.github.io/lms', icon: 'fa-book-open', color: 'green', isSystem: false },
-            { id: 'tugas', title: 'Tugas Sekolah', url: 'https://nusancbt.github.io/tugas', icon: 'fa-pen-to-square', color: 'purple', isSystem: false }
-        ];
+        // =============================================================
+        // CONFIGURATION: PASTE GOOGLE APPS SCRIPT URL HERE
+        // =============================================================
+        const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxutgbPKy6Y3dQ0oWGE04lFbrg4EKWtekFCFozs4e-VokuKUc3HWeO0jfnDfDrgyKmU/exec';
+        // =============================================================
 
         // --- STATE MANAGEMENT ---
-        let announcements = JSON.parse(localStorage.getItem('schoolAnnouncements')) || defaultAnnouncements;
-        let menus = JSON.parse(localStorage.getItem('schoolMenus')) || defaultMenus;
+        let announcements = [];
+        let menus = [];
 
         // --- COLOR MAPS ---
-        const gradients = {
-            blue: 'from-blue-500 to-blue-600',
-            green: 'from-emerald-500 to-emerald-600',
-            purple: 'from-purple-500 to-purple-600',
-            orange: 'from-orange-500 to-orange-600',
-            red: 'from-red-500 to-red-600',
-            cyan: 'from-teal-500 to-teal-600',
-            gray: 'from-slate-500 to-slate-600'
-        };
-        const textColors = {
-            blue: 'text-blue-100', green: 'text-emerald-100', purple: 'text-purple-100',
-            orange: 'text-orange-100', red: 'text-red-100', cyan: 'text-teal-100', gray: 'text-slate-100'
-        };
+        const gradients = { blue: 'from-blue-500 to-blue-600', green: 'from-emerald-500 to-emerald-600', purple: 'from-purple-500 to-purple-600', orange: 'from-orange-500 to-orange-600', red: 'from-red-500 to-red-600' };
+        const textColors = { blue: 'text-blue-100', green: 'text-emerald-100', purple: 'text-purple-100', orange: 'text-orange-100', red: 'text-red-100' };
 
         // --- DOM Elements ---
         const mainIframe = document.getElementById('main-iframe');
@@ -343,18 +214,70 @@
         const homeCardsContainer = document.getElementById('home-cards-container');
         const externalLink = document.getElementById('external-link');
         const iframeError = document.getElementById('iframe-error');
+        const appLoading = document.getElementById('app-loading');
 
         // --- INITIALIZATION ---
         init();
 
-        function init() {
+        async function init() {
+            updateClock();
+            if (GOOGLE_SCRIPT_URL.includes('GANTI_DENGAN')) {
+                appLoading.innerHTML = '<div class="text-center p-4"><h3 class="text-xl font-bold text-red-600">Error Konfigurasi</h3><p>Anda belum memasukkan URL Google Script di dalam kode HTML.</p></div>';
+                return;
+            }
+            await fetchFromDatabase();
+        }
+
+        // --- DATABASE FUNCTIONS (FETCH API) ---
+        async function fetchFromDatabase() {
+            try {
+                const response = await fetch(GOOGLE_SCRIPT_URL);
+                const data = await response.json();
+                
+                if (data.status === 'success') {
+                    menus = data.menus;
+                    announcements = data.announcements;
+                    refreshUI();
+                    appLoading.classList.add('hidden');
+                }
+            } catch (error) {
+                console.error("Error fetching data:", error);
+                Swal.fire("Gagal Terhubung", "Tidak dapat mengambil data dari database. Periksa koneksi internet.", "error");
+                appLoading.classList.add('hidden');
+            }
+        }
+
+        async function sendToDatabase(action, payload) {
+            Swal.fire({ title: 'Menyimpan...', text: 'Sedang sinkronisasi dengan Google Sheet', allowOutsideClick: false, didOpen: () => { Swal.showLoading() } });
+            
+            try {
+                // Apps Script requires simple POST body stringified
+                const response = await fetch(GOOGLE_SCRIPT_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ action: action, ...payload })
+                });
+                const data = await response.json();
+                
+                if (data.status === 'success') {
+                    menus = data.menus;
+                    announcements = data.announcements;
+                    refreshUI();
+                    Swal.fire("Berhasil", "Data berhasil disimpan di Database!", "success");
+                }
+            } catch (error) {
+                console.error("Error saving data:", error);
+                Swal.fire("Error", "Gagal menyimpan data.", "error");
+            }
+        }
+
+        function refreshUI() {
             renderSidebar();
             renderHome();
-            updateClock();
+            renderMenuSettingsList();
+            renderAnnouncementSettingsList();
         }
 
         // --- RENDER FUNCTIONS ---
-
         function renderSidebar() {
             sidebarMenuContainer.innerHTML = '';
             menus.forEach(menu => {
@@ -362,369 +285,133 @@
                 btn.id = `btn-${menu.id}`;
                 btn.className = 'nav-item w-full flex items-center gap-3 px-3 py-3 rounded-lg hover:bg-slate-800 transition-colors';
                 btn.onclick = () => switchView(menu.id);
-                btn.innerHTML = `
-                    <i class="fa-solid ${menu.icon} w-5 text-center text-slate-400 transition-colors"></i>
-                    <span class="text-sm font-medium text-left truncate">${menu.title}</span>
-                `;
+                btn.innerHTML = `<i class="fa-solid ${menu.icon} w-5 text-center text-slate-400 transition-colors"></i><span class="text-sm font-medium text-left truncate">${menu.title}</span>`;
                 sidebarMenuContainer.appendChild(btn);
             });
         }
 
         function renderHome() {
-            // Render Cards
             homeCardsContainer.innerHTML = '';
             menus.forEach(menu => {
                 const gradient = gradients[menu.color] || gradients.blue;
                 const textColor = textColors[menu.color] || textColors.blue;
-                
                 const card = document.createElement('div');
                 card.className = `bg-gradient-to-br ${gradient} rounded-xl p-6 text-white shadow-lg cursor-pointer transform hover:scale-105 transition-transform`;
                 card.onclick = () => switchView(menu.id);
-                card.innerHTML = `
-                    <div class="flex justify-between items-start">
-                        <div class="overflow-hidden">
-                            <p class="${textColor} text-sm font-medium mb-1 truncate opacity-90">Menu Utama</p>
-                            <h3 class="text-xl font-bold truncate pr-2">${menu.title}</h3>
-                        </div>
-                        <div class="bg-white/20 p-2 rounded-lg flex-shrink-0">
-                            <i class="fa-solid ${menu.icon} text-xl"></i>
-                        </div>
-                    </div>
-                    <p class="mt-4 text-xs bg-white/20 inline-block px-2 py-1 rounded text-white">Buka Menu</p>
-                `;
+                card.innerHTML = `<div class="flex justify-between items-start"><div class="overflow-hidden"><p class="${textColor} text-sm font-medium mb-1 truncate opacity-90">Menu Utama</p><h3 class="text-xl font-bold truncate pr-2">${menu.title}</h3></div><div class="bg-white/20 p-2 rounded-lg flex-shrink-0"><i class="fa-solid ${menu.icon} text-xl"></i></div></div><p class="mt-4 text-xs bg-white/20 inline-block px-2 py-1 rounded text-white">Buka Menu</p>`;
                 homeCardsContainer.appendChild(card);
             });
 
-            // Render Announcements
             const annList = document.getElementById('announcement-list');
             annList.innerHTML = '';
-            if(announcements.length === 0) {
-                annList.innerHTML = '<div class="text-center text-gray-500 py-4">Belum ada pengumuman.</div>';
-            } else {
-                announcements.forEach(item => {
-                    let colorClass = 'bg-blue-100 text-blue-600';
-                    let icon = 'fa-bullhorn';
-                    if (item.type === 'warning') { colorClass = 'bg-orange-100 text-orange-600'; icon = 'fa-triangle-exclamation'; }
-                    if (item.type === 'urgent') { colorClass = 'bg-red-100 text-red-600'; icon = 'fa-circle-exclamation'; }
-
-                    const div = document.createElement('div');
-                    div.className = 'flex gap-4 items-start p-2 rounded-lg hover:bg-gray-50 transition-colors';
-                    div.innerHTML = `
-                        <div class="w-12 h-12 rounded-full ${colorClass} flex items-center justify-center flex-shrink-0">
-                            <i class="fa-solid ${icon}"></i>
-                        </div>
-                        <div>
-                            <h4 class="font-semibold text-gray-800">${item.title}</h4>
-                            <p class="text-sm text-gray-600 mt-1">${item.content}</p>
-                            <span class="text-xs text-gray-400 mt-2 block"><i class="fa-regular fa-clock mr-1"></i> ${item.time}</span>
-                        </div>
-                    `;
-                    annList.appendChild(div);
-                });
-            }
-        }
-
-        function renderMenuSettingsList() {
-            const list = document.getElementById('settings-menu-list');
-            list.innerHTML = '';
-            menus.forEach(menu => {
-                const item = document.createElement('div');
-                item.className = 'p-4 flex flex-col md:flex-row justify-between items-start md:items-center hover:bg-gray-50 gap-4';
-                item.innerHTML = `
-                    <div class="flex items-center gap-4 flex-1 overflow-hidden">
-                        <div class="w-10 h-10 rounded bg-gray-100 flex items-center justify-center text-gray-600">
-                            <i class="fa-solid ${menu.icon}"></i>
-                        </div>
-                        <div class="min-w-0">
-                            <h4 class="font-bold text-gray-800 truncate">${menu.title}</h4>
-                            <p class="text-xs text-blue-600 truncate font-mono">${menu.url}</p>
-                        </div>
-                    </div>
-                    <div class="flex gap-2 shrink-0">
-                        <button onclick="editMenu('${menu.id}')" class="px-3 py-1.5 bg-yellow-100 text-yellow-700 rounded hover:bg-yellow-200 text-sm font-medium">
-                            <i class="fa-solid fa-pen"></i> Edit
-                        </button>
-                        <button onclick="deleteMenu('${menu.id}')" class="px-3 py-1.5 bg-red-100 text-red-700 rounded hover:bg-red-200 text-sm font-medium">
-                            <i class="fa-solid fa-trash"></i> Hapus
-                        </button>
-                    </div>
-                `;
-                list.appendChild(item);
-            });
-        }
-
-        function renderAnnouncementSettingsList() {
-            const list = document.getElementById('settings-ann-list');
-            list.innerHTML = '';
+            if(announcements.length === 0) annList.innerHTML = '<div class="text-center text-gray-500 py-4">Belum ada pengumuman.</div>';
             announcements.forEach(item => {
+                let colorClass = 'bg-blue-100 text-blue-600', icon = 'fa-bullhorn';
+                if (item.type === 'warning') { colorClass = 'bg-orange-100 text-orange-600'; icon = 'fa-triangle-exclamation'; }
+                if (item.type === 'urgent') { colorClass = 'bg-red-100 text-red-600'; icon = 'fa-circle-exclamation'; }
                 const div = document.createElement('div');
-                div.className = 'p-4 flex flex-col md:flex-row justify-between items-start md:items-center hover:bg-gray-50';
-                div.innerHTML = `
-                    <div class="mb-2 md:mb-0">
-                        <div class="flex items-center gap-2 mb-1">
-                            <span class="px-2 py-0.5 rounded text-xs font-bold uppercase bg-gray-200 text-gray-700">${item.type}</span>
-                            <h4 class="font-bold text-gray-800">${item.title}</h4>
-                        </div>
-                        <p class="text-sm text-gray-600 truncate max-w-xs">${item.content}</p>
-                    </div>
-                    <div class="flex gap-2">
-                        <button onclick="editAnnouncement(${item.id})" class="text-yellow-600 hover:text-yellow-700 p-2"><i class="fa-solid fa-pen"></i></button>
-                        <button onclick="deleteAnnouncement(${item.id})" class="text-red-600 hover:text-red-700 p-2"><i class="fa-solid fa-trash"></i></button>
-                    </div>
-                `;
-                list.appendChild(div);
+                div.className = 'flex gap-4 items-start p-2 rounded-lg hover:bg-gray-50 transition-colors';
+                div.innerHTML = `<div class="w-12 h-12 rounded-full ${colorClass} flex items-center justify-center flex-shrink-0"><i class="fa-solid ${icon}"></i></div><div><h4 class="font-semibold text-gray-800">${item.title}</h4><p class="text-sm text-gray-600 mt-1">${item.content}</p><span class="text-xs text-gray-400 mt-2 block"><i class="fa-regular fa-clock mr-1"></i> ${item.time}</span></div>`;
+                annList.appendChild(div);
             });
         }
 
-
-        // --- NAVIGATION LOGIC ---
-        function switchView(viewId) {
-            if (viewId === 'settings') {
-                document.getElementById('password-modal').classList.remove('hidden');
-                document.getElementById('admin-password').value = '';
-                document.getElementById('admin-password').focus();
-                return;
-            }
-            executeSwitch(viewId);
-        }
-
-        function executeSwitch(viewId) {
-            // Update Sidebar UI
-            document.querySelectorAll('.nav-item').forEach(el => {
-                el.classList.remove('active', 'bg-blue-600', 'text-white');
-                el.classList.add('hover:bg-slate-800');
-                const icon = el.querySelector('i');
-                if(icon) icon.classList.add('text-slate-400');
-            });
-            const activeBtn = document.getElementById(`btn-${viewId}`);
-            if(activeBtn) {
-                activeBtn.classList.add('active');
-                activeBtn.classList.remove('hover:bg-slate-800');
-                const icon = activeBtn.querySelector('i');
-                if(icon) icon.classList.remove('text-slate-400');
-            }
-
-            // Close Mobile Sidebar
-            if(window.innerWidth < 1024) {
-                document.getElementById('sidebar').classList.add('-translate-x-full');
-                document.getElementById('mobile-overlay').classList.add('hidden');
-            }
-
-            // Hide All Views
-            document.getElementById('view-home').classList.add('hidden');
-            document.getElementById('view-iframe-wrapper').classList.add('hidden');
-            document.getElementById('view-settings').classList.add('hidden');
-            mainIframe.src = '';
-
-            // Logic per View
-            if (viewId === 'home') {
-                pageTitle.textContent = 'Dashboard Utama';
-                document.getElementById('view-home').classList.remove('hidden');
-                renderHome(); // Refresh
-            } else if (viewId === 'settings') {
-                pageTitle.textContent = 'Pengaturan Admin';
-                document.getElementById('view-settings').classList.remove('hidden');
-                renderMenuSettingsList();
-                renderAnnouncementSettingsList();
-            } else {
-                // Dynamic Menu View
-                const menuItem = menus.find(m => m.id === viewId);
-                if (menuItem) {
-                    pageTitle.textContent = menuItem.title;
-                    document.getElementById('view-iframe-wrapper').classList.remove('hidden');
-                    loader.style.display = 'block';
-                    iframeError.classList.add('hidden');
-                    
-                    externalLink.href = menuItem.url;
-                    mainIframe.src = menuItem.url;
-
-                    mainIframe.onload = () => loader.style.display = 'none';
-                    mainIframe.onerror = () => { loader.style.display = 'none'; iframeError.classList.remove('hidden'); };
-                }
-            }
-        }
-
-        // --- PASSWORD LOGIC ---
-        function closePasswordModal() { document.getElementById('password-modal').classList.add('hidden'); }
-        function verifyPassword(e) {
-            e.preventDefault();
-            if (document.getElementById('admin-password').value === '112233') {
-                closePasswordModal();
-                executeSwitch('settings');
-                Swal.fire({ icon: 'success', title: 'Login Berhasil', timer: 1000, showConfirmButton: false });
-            } else {
-                Swal.fire({ icon: 'error', title: 'Password Salah' });
-            }
-        }
-
-        // --- CRUD MENU FUNCTIONS ---
+        // --- CRUD LOGIC (Now calls Database) ---
         function saveMenu(e) {
             e.preventDefault();
             const id = document.getElementById('menu-edit-id').value;
-            const title = document.getElementById('menu-title').value;
-            const url = document.getElementById('menu-url').value;
-            const icon = document.getElementById('menu-icon').value;
-            const color = document.getElementById('menu-color').value;
-
-            if (id) {
-                // Update
-                const index = menus.findIndex(m => m.id === id);
-                if (index !== -1) {
-                    menus[index] = { ...menus[index], title, url, icon, color };
-                    Swal.fire('Sukses', 'Menu berhasil diperbarui', 'success');
-                }
-            } else {
-                // Create
-                const newId = 'menu_' + Date.now();
-                menus.push({ id: newId, title, url, icon, color, isSystem: false });
-                Swal.fire('Sukses', 'Menu baru ditambahkan', 'success');
-            }
-            
-            localStorage.setItem('schoolMenus', JSON.stringify(menus));
-            renderMenuSettingsList();
-            renderSidebar();
+            const data = {
+                id: id || 'menu_' + Date.now(),
+                title: document.getElementById('menu-title').value,
+                url: document.getElementById('menu-url').value,
+                icon: document.getElementById('menu-icon').value,
+                color: document.getElementById('menu-color').value
+            };
+            sendToDatabase('saveMenu', { data: data });
             resetMenuForm();
+        }
+
+        function deleteMenu(id) {
+            Swal.fire({ title: 'Hapus Menu?', text: "Data di Google Sheet akan dihapus.", icon: 'warning', showCancelButton: true, confirmButtonColor: '#d33', confirmButtonText: 'Ya, Hapus' }).then((result) => {
+                if (result.isConfirmed) sendToDatabase('deleteMenu', { id: id });
+            });
+        }
+
+        function saveAnnouncement(e) {
+            e.preventDefault();
+            const id = document.getElementById('ann-edit-id').value;
+            const data = {
+                id: id || Date.now(),
+                title: document.getElementById('ann-title').value,
+                content: document.getElementById('ann-content').value,
+                type: document.getElementById('ann-type').value,
+                time: document.getElementById('ann-time').value || 'Baru saja'
+            };
+            sendToDatabase('saveAnnouncement', { data: data });
+            document.getElementById('ann-edit-id').value = ''; document.getElementById('ann-title').value = ''; document.getElementById('ann-content').value = '';
+        }
+
+        function deleteAnnouncement(id) {
+            Swal.fire({ title: 'Hapus?', icon: 'warning', showCancelButton: true, confirmButtonText: 'Ya' }).then((r) => { if(r.isConfirmed) sendToDatabase('deleteAnnouncement', { id: id }); });
+        }
+
+        // --- EDIT & RENDER LISTS (Helper) ---
+        function renderMenuSettingsList() {
+            const list = document.getElementById('settings-menu-list'); list.innerHTML = '';
+            menus.forEach(menu => {
+                list.innerHTML += `<div class="p-4 flex flex-col md:flex-row justify-between items-center hover:bg-gray-50 gap-4"><div class="flex items-center gap-4 flex-1 overflow-hidden"><div class="w-10 h-10 rounded bg-gray-100 flex items-center justify-center text-gray-600"><i class="fa-solid ${menu.icon}"></i></div><div class="min-w-0"><h4 class="font-bold text-gray-800 truncate">${menu.title}</h4><p class="text-xs text-blue-600 truncate font-mono">${menu.url}</p></div></div><div class="flex gap-2 shrink-0"><button onclick="editMenu('${menu.id}')" class="px-3 py-1.5 bg-yellow-100 text-yellow-700 rounded text-sm font-medium">Edit</button><button onclick="deleteMenu('${menu.id}')" class="px-3 py-1.5 bg-red-100 text-red-700 rounded text-sm font-medium">Hapus</button></div></div>`;
+            });
+        }
+        function renderAnnouncementSettingsList() {
+            const list = document.getElementById('settings-ann-list'); list.innerHTML = '';
+            announcements.forEach(item => {
+                list.innerHTML += `<div class="p-4 flex flex-col md:flex-row justify-between items-center hover:bg-gray-50"><div class="mb-2 md:mb-0"><div class="flex items-center gap-2 mb-1"><span class="px-2 py-0.5 rounded text-xs font-bold uppercase bg-gray-200 text-gray-700">${item.type}</span><h4 class="font-bold text-gray-800">${item.title}</h4></div><p class="text-sm text-gray-600 truncate max-w-xs">${item.content}</p></div><div class="flex gap-2"><button onclick="editAnnouncement(${item.id})" class="text-yellow-600 p-2"><i class="fa-solid fa-pen"></i></button><button onclick="deleteAnnouncement(${item.id})" class="text-red-600 p-2"><i class="fa-solid fa-trash"></i></button></div></div>`;
+            });
         }
 
         function editMenu(id) {
             const item = menus.find(m => m.id === id);
-            if (item) {
-                document.getElementById('menu-edit-id').value = item.id;
-                document.getElementById('menu-title').value = item.title;
-                document.getElementById('menu-url').value = item.url;
-                document.getElementById('menu-icon').value = item.icon;
-                document.getElementById('menu-color').value = item.color;
-                
-                const btn = document.getElementById('btn-save-menu');
-                btn.innerHTML = '<i class="fa-solid fa-save mr-2"></i> Update Menu';
-                btn.classList.replace('bg-blue-600', 'bg-green-600');
-                btn.classList.replace('hover:bg-blue-700', 'hover:bg-green-700');
-            }
+            if(item) { document.getElementById('menu-edit-id').value = item.id; document.getElementById('menu-title').value = item.title; document.getElementById('menu-url').value = item.url; document.getElementById('menu-icon').value = item.icon; document.getElementById('menu-color').value = item.color; document.getElementById('btn-save-menu').innerHTML = 'Update Menu di Database'; }
         }
-
-        function deleteMenu(id) {
-            Swal.fire({
-                title: 'Hapus Menu?',
-                text: "Menu akan hilang dari dashboard dan sidebar.",
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#d33',
-                confirmButtonText: 'Ya, Hapus'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    menus = menus.filter(m => m.id !== id);
-                    localStorage.setItem('schoolMenus', JSON.stringify(menus));
-                    renderMenuSettingsList();
-                    renderSidebar();
-                    Swal.fire('Terhapus!', 'Menu telah dihapus.', 'success');
-                }
-            });
-        }
-
-        function resetMenuForm() {
-            document.getElementById('menu-edit-id').value = '';
-            document.getElementById('menu-title').value = '';
-            document.getElementById('menu-url').value = '';
-            
-            const btn = document.getElementById('btn-save-menu');
-            btn.innerHTML = '<i class="fa-solid fa-plus mr-2"></i> Simpan Menu';
-            btn.classList.replace('bg-green-600', 'bg-blue-600');
-            btn.classList.replace('hover:bg-green-700', 'hover:bg-blue-700');
-        }
-
-        function resetToDefaultMenus() {
-             Swal.fire({
-                title: 'Reset ke Default?',
-                text: "Semua menu custom akan dihapus.",
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonText: 'Ya, Reset'
-            }).then((result) => {
-                if(result.isConfirmed) {
-                    menus = JSON.parse(JSON.stringify(defaultMenus));
-                    localStorage.setItem('schoolMenus', JSON.stringify(menus));
-                    renderMenuSettingsList();
-                    renderSidebar();
-                }
-            });
-        }
-
-        // --- CRUD ANNOUNCEMENT FUNCTIONS ---
-        function saveAnnouncement(e) {
-            e.preventDefault();
-            const id = document.getElementById('ann-edit-id').value;
-            const title = document.getElementById('ann-title').value;
-            const content = document.getElementById('ann-content').value;
-            const type = document.getElementById('ann-type').value;
-            const time = document.getElementById('ann-time').value || 'Baru saja';
-
-            if (id) {
-                const index = announcements.findIndex(a => a.id == id);
-                if (index !== -1) announcements[index] = { ...announcements[index], title, content, type, time };
-            } else {
-                const newId = announcements.length ? Math.max(...announcements.map(a => a.id)) + 1 : 1;
-                announcements.push({ id: newId, title, content, type, time });
-            }
-            localStorage.setItem('schoolAnnouncements', JSON.stringify(announcements));
-            renderAnnouncementSettingsList();
-            document.getElementById('ann-edit-id').value = '';
-            document.getElementById('ann-title').value = '';
-            document.getElementById('ann-content').value = '';
-            Swal.fire('Tersimpan', '', 'success');
-        }
-
         function editAnnouncement(id) {
             const item = announcements.find(a => a.id == id);
-            if(item) {
-                document.getElementById('ann-edit-id').value = item.id;
-                document.getElementById('ann-title').value = item.title;
-                document.getElementById('ann-content').value = item.content;
-                document.getElementById('ann-type').value = item.type;
-                document.getElementById('ann-time').value = item.time;
-                document.getElementById('btn-save-ann').innerHTML = 'Update Pengumuman';
-            }
+            if(item) { document.getElementById('ann-edit-id').value = item.id; document.getElementById('ann-title').value = item.title; document.getElementById('ann-content').value = item.content; document.getElementById('ann-type').value = item.type; document.getElementById('ann-time').value = item.time; document.getElementById('btn-save-ann').innerHTML = 'Update Pengumuman'; }
         }
+        function resetMenuForm() { document.getElementById('menu-edit-id').value = ''; document.getElementById('menu-title').value = ''; document.getElementById('menu-url').value = ''; document.getElementById('btn-save-menu').innerHTML = '<i class="fa-solid fa-plus mr-2"></i> Simpan ke Database'; }
 
-        function deleteAnnouncement(id) {
-            announcements = announcements.filter(a => a.id !== id);
-            localStorage.setItem('schoolAnnouncements', JSON.stringify(announcements));
-            renderAnnouncementSettingsList();
+        // --- NAVIGATION & UTILS ---
+        function switchView(viewId) {
+            if (viewId === 'settings') { document.getElementById('password-modal').classList.remove('hidden'); document.getElementById('admin-password').value = ''; return; }
+            executeSwitch(viewId);
         }
-
-        // --- TABS LOGIC ---
-        function switchSettingsTab(tabName) {
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            document.getElementById(`tab-btn-${tabName}`).classList.add('active');
-
-            document.getElementById('tab-content-menu').classList.add('hidden');
-            document.getElementById('tab-content-announcement').classList.add('hidden');
+        function executeSwitch(viewId) {
+            document.querySelectorAll('.nav-item').forEach(el => { el.classList.remove('active', 'bg-blue-600', 'text-white'); el.classList.add('hover:bg-slate-800'); el.querySelector('i').classList.add('text-slate-400'); });
+            const activeBtn = document.getElementById(`btn-${viewId}`);
+            if(activeBtn) { activeBtn.classList.add('active'); activeBtn.classList.remove('hover:bg-slate-800'); activeBtn.querySelector('i').classList.remove('text-slate-400'); }
             
-            document.getElementById(`tab-content-${tabName}`).classList.remove('hidden');
-        }
+            if(window.innerWidth < 1024) { document.getElementById('sidebar').classList.add('-translate-x-full'); document.getElementById('mobile-overlay').classList.add('hidden'); }
+            
+            ['view-home', 'view-iframe-wrapper', 'view-settings'].forEach(id => document.getElementById(id).classList.add('hidden'));
+            mainIframe.src = '';
 
-        // --- UTILS ---
-        function toggleSidebar() {
-            const sb = document.getElementById('sidebar');
-            const ov = document.getElementById('mobile-overlay');
-            sb.classList.toggle('-translate-x-full');
-            ov.classList.toggle('hidden');
-        }
-
-        function toggleFullscreen() {
-            if (!document.fullscreenElement) {
-                document.documentElement.requestFullscreen();
-            } else if (document.exitFullscreen) {
-                document.exitFullscreen();
+            if (viewId === 'home') { pageTitle.textContent = 'Dashboard Utama'; document.getElementById('view-home').classList.remove('hidden'); refreshUI(); }
+            else if (viewId === 'settings') { pageTitle.textContent = 'Pengaturan Admin (Database)'; document.getElementById('view-settings').classList.remove('hidden'); refreshUI(); }
+            else {
+                const menuItem = menus.find(m => m.id === viewId);
+                if (menuItem) {
+                    pageTitle.textContent = menuItem.title; document.getElementById('view-iframe-wrapper').classList.remove('hidden'); loader.style.display = 'block'; iframeError.classList.add('hidden');
+                    externalLink.href = menuItem.url; mainIframe.src = menuItem.url;
+                    mainIframe.onload = () => loader.style.display = 'none'; mainIframe.onerror = () => { loader.style.display = 'none'; iframeError.classList.remove('hidden'); };
+                }
             }
         }
-
-        function updateClock() {
-            const now = new Date();
-            document.getElementById('digital-clock').textContent = now.toLocaleTimeString('id-ID', { hour12: false });
-            document.getElementById('current-date').textContent = now.toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'short', day: 'numeric' });
-        }
+        function closePasswordModal() { document.getElementById('password-modal').classList.add('hidden'); }
+        function verifyPassword(e) { e.preventDefault(); if (document.getElementById('admin-password').value === '112233') { closePasswordModal(); executeSwitch('settings'); } else Swal.fire('Password Salah', '', 'error'); }
+        function switchSettingsTab(tabName) { document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active')); document.getElementById(`tab-btn-${tabName}`).classList.add('active'); document.getElementById('tab-content-menu').classList.add('hidden'); document.getElementById('tab-content-announcement').classList.add('hidden'); document.getElementById(`tab-content-${tabName}`).classList.remove('hidden'); }
+        function toggleSidebar() { document.getElementById('sidebar').classList.toggle('-translate-x-full'); document.getElementById('mobile-overlay').classList.toggle('hidden'); }
+        function toggleFullscreen() { if (!document.fullscreenElement) document.documentElement.requestFullscreen(); else if (document.exitFullscreen) document.exitFullscreen(); }
+        function updateClock() { const now = new Date(); document.getElementById('digital-clock').textContent = now.toLocaleTimeString('id-ID', { hour12: false }); document.getElementById('current-date').textContent = now.toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'short', day: 'numeric' }); }
         setInterval(updateClock, 1000);
-
     </script>
 </body>
 </html>
