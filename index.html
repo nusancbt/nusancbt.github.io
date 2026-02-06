@@ -16,7 +16,7 @@
         .custom-scrollbar::-webkit-scrollbar-track { background: #1e293b; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #475569; border-radius: 5px; }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #64748b; }
-        .iframe-container { position: relative; width: 100%; height: 100%; overflow: hidden; background-color: black; border-radius: 0; }
+        .iframe-container { position: relative; width: 100%; height: 100%; overflow: hidden; background-color: white; border-radius: 0; }
         iframe { width: 100%; height: 100%; border: none; }
         .nav-item.active { background-color: #2563eb; color: white; }
         .nav-item.active i { color: white; }
@@ -128,7 +128,7 @@
                 </div>
             </div>
 
-            <div id="view-iframe-wrapper" class="hidden w-full h-full bg-black">
+            <div id="view-iframe-wrapper" class="hidden w-full h-full bg-white">
                 <div class="iframe-container">
                     <iframe id="main-iframe" src="" allowfullscreen="true" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"></iframe>
                     <div id="iframe-error" class="hidden absolute inset-0 flex flex-col items-center justify-center bg-gray-50 p-6 text-center">
@@ -154,8 +154,8 @@
                             </div>
                             <form onsubmit="saveMenu(event)" class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <input type="hidden" id="menu-edit-id">
-                                <div class="col-span-1"><label class="block text-sm font-medium text-gray-700 mb-1">Nama Menu</label><input type="text" id="menu-title" class="w-full px-4 py-2 rounded-lg border border-gray-300 outline-none" placeholder="Cth: Video Pembelajaran" required></div>
-                                <div class="col-span-1"><label class="block text-sm font-medium text-gray-700 mb-1">Link URL / Youtube</label><input type="url" id="menu-url" class="w-full px-4 py-2 rounded-lg border border-gray-300 outline-none" placeholder="https://youtube.com/watch?v=..." required></div>
+                                <div class="col-span-1"><label class="block text-sm font-medium text-gray-700 mb-1">Nama Menu</label><input type="text" id="menu-title" class="w-full px-4 py-2 rounded-lg border border-gray-300 outline-none" placeholder="Cth: Materi Biologi" required></div>
+                                <div class="col-span-1"><label class="block text-sm font-medium text-gray-700 mb-1">Link URL</label><input type="url" id="menu-url" class="w-full px-4 py-2 rounded-lg border border-gray-300 outline-none" placeholder="https://docs.google.com/..." required></div>
                                 <div><label class="block text-sm font-medium text-gray-700 mb-1">Ikon</label><select id="menu-icon" class="w-full px-4 py-2 rounded-lg border border-gray-300 outline-none"><option value="fa-desktop">Desktop</option><option value="fa-book-open">Buku</option><option value="fa-pen-to-square">Tulis</option><option value="fa-video">Video</option><option value="fa-brands fa-youtube">YouTube (Logo)</option><option value="fa-file-pdf">Dokumen</option><option value="fa-globe">Bola Dunia</option></select></div>
                                 <div><label class="block text-sm font-medium text-gray-700 mb-1">Warna</label><select id="menu-color" class="w-full px-4 py-2 rounded-lg border border-gray-300 outline-none"><option value="blue">Biru</option><option value="green">Hijau</option><option value="purple">Ungu</option><option value="orange">Oranye</option><option value="red">Merah</option></select></div>
                                 <div class="md:col-span-2"><button type="submit" id="btn-save-menu" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors shadow"><i class="fa-solid fa-plus mr-2"></i> Simpan ke Database</button></div>
@@ -193,7 +193,7 @@
 
     <script>
         // =============================================================
-        // CONFIGURATION: PASTE GOOGLE APPS SCRIPT URL HERE
+        // CONFIGURATION: GOOGLE APPS SCRIPT URL
         // =============================================================
         const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxutgbPKy6Y3dQ0oWGE04lFbrg4EKWtekFCFozs4e-VokuKUc3HWeO0jfnDfDrgyKmU/exec';
         // =============================================================
@@ -217,17 +217,12 @@
 
         async function init() {
             updateClock();
-            if (GOOGLE_SCRIPT_URL.includes('GANTI_DENGAN')) {
-                appLoading.innerHTML = '<div class="text-center p-4"><h3 class="text-xl font-bold text-red-600">Error Konfigurasi</h3><p>Anda belum memasukkan URL Google Script di dalam kode HTML.</p></div>';
-                return;
-            }
             await fetchFromDatabase();
         }
 
         // --- YOUTUBE HELPER FUNCTION ---
         function getYoutubeId(url) {
             if (!url) return null;
-            // Regex to check for youtube links (standard, shortened, embed)
             const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
             const match = url.match(regExp);
             return (match && match[2].length === 11) ? match[2] : null;
@@ -410,14 +405,23 @@
                     loader.style.display = 'block'; 
                     iframeError.classList.add('hidden');
                     
-                    // --- INTELLIGENT YOUTUBE DETECTION ---
+                    // --- SMART URL HANDLING ---
+                    
                     const youtubeId = getYoutubeId(menuItem.url);
+                    
                     if (youtubeId) {
-                        // It's a YouTube video, use Embed URL
-                        externalLink.href = menuItem.url; // Keep original for "Open in New Tab"
+                        // 1. YouTube: Convert to Embed
+                        externalLink.href = menuItem.url; 
                         mainIframe.src = `https://www.youtube.com/embed/${youtubeId}?autoplay=1&rel=0`;
+                        
+                    } else if (menuItem.url.includes('docs.google.com') && menuItem.url.includes('/edit')) {
+                        // 2. Google Docs/Sheets/Slides (Anti-Lag): Convert Edit to Preview
+                        externalLink.href = menuItem.url;
+                        // Regex replaces everything after /edit with /preview
+                        mainIframe.src = menuItem.url.replace(/\/edit.*/, '/preview');
+                        
                     } else {
-                        // Standard URL
+                        // 3. Standard URL
                         externalLink.href = menuItem.url; 
                         mainIframe.src = menuItem.url;
                     }
