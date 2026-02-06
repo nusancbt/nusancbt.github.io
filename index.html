@@ -29,7 +29,7 @@
 </head>
 <body class="bg-gray-100 h-screen overflow-hidden flex text-gray-800">
 
-    <!-- Loading Overlay Fullscreen (Initial Load) -->
+    <!-- Loading Overlay Fullscreen (Initial Load Only) -->
     <div id="app-loading" class="fixed inset-0 z-[60] bg-white flex flex-col items-center justify-center">
         <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-blue-600 mb-4"></div>
         <p class="text-gray-600 font-medium">Loading...</p>
@@ -104,7 +104,7 @@
                 <button onclick="toggleSidebar()" class="lg:hidden p-2 text-gray-600 hover:bg-gray-100 rounded-md">
                     <i class="fa-solid fa-bars text-xl"></i>
                 </button>
-                <h2 id="page-title" class="text-lg font-bold text-gray-800">Dashboard Utama</h2>
+                <h2 id="page-title" class="text-lg font-bold text-gray-800">SMKS NUSANTARA 1 CIPUTAT</h2>
             </div>
             <div class="flex items-center gap-4">
                 <div class="hidden md:flex flex-col items-end mr-2">
@@ -119,6 +119,21 @@
             <div id="loader" class="loader"></div>
 
             <div id="view-home" class="h-full overflow-y-auto p-4 lg:p-6 animate-fade-in">
+                <!-- Banner Penutupan/Akses Otomatis -->
+                <div id="curfew-banner" class="hidden mb-6 bg-yellow-50 border-l-4 border-yellow-500 p-4 rounded-r shadow-sm transition-all duration-300">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0 text-yellow-500">
+                            <i class="fa-solid fa-clock text-2xl"></i>
+                        </div>
+                        <div class="ml-3">
+                            <h3 class="text-sm font-bold text-yellow-800">Info Akses Menu</h3>
+                            <p class="text-sm text-yellow-700 mt-1">
+                                Beberapa menu belum dibuka atau jadwal telah berakhir.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
                 <div id="home-cards-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-6"></div>
                 <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
                     <h3 class="text-lg font-bold text-gray-800 mb-4 border-b pb-2 flex justify-between items-center">
@@ -160,17 +175,27 @@
                                 <div><label class="block text-sm font-medium text-gray-700 mb-1">Ikon</label><select id="menu-icon" class="w-full px-4 py-2 rounded-lg border border-gray-300 outline-none"><option value="fa-desktop">Desktop</option><option value="fa-book-open">Buku</option><option value="fa-pen-to-square">Tulis</option><option value="fa-video">Video</option><option value="fa-file-pdf">Dokumen</option><option value="fa-globe">Bola Dunia</option></select></div>
                                 <div><label class="block text-sm font-medium text-gray-700 mb-1">Warna</label><select id="menu-color" class="w-full px-4 py-2 rounded-lg border border-gray-300 outline-none"><option value="blue">Biru</option><option value="green">Hijau</option><option value="purple">Ungu</option><option value="orange">Oranye</option><option value="red">Merah</option></select></div>
                                 
-                                <!-- Tambahan: Dropdown Status Aktif/Non-Aktif -->
-                                <div class="md:col-span-2"><label class="block text-sm font-medium text-gray-700 mb-1">Status Menu</label><select id="menu-status" class="w-full px-4 py-2 rounded-lg border border-gray-300 outline-none"><option value="active">Aktif (Tampil di Dashboard)</option><option value="inactive">Non-Aktif (Disembunyikan)</option></select></div>
+                                <!-- INPUT STATUS -->
+                                <div class="md:col-span-2"><label class="block text-sm font-medium text-gray-700 mb-1">Status Menu (Manual)</label><select id="menu-status" class="w-full px-4 py-2 rounded-lg border border-gray-300 outline-none"><option value="active">Aktif</option><option value="inactive">Non-Aktif (Sembunyikan Manual)</option></select></div>
+
+                                <!-- INPUT JAM BUKA & TUTUP -->
+                                <div class="md:col-span-1">
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Jam Buka (Jam:Menit)</label>
+                                    <input type="time" id="menu-auto-open" class="w-full px-4 py-2 rounded-lg border border-gray-300 outline-none">
+                                </div>
+                                <div class="md:col-span-1">
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Jam Tutup (Jam:Menit)</label>
+                                    <input type="time" id="menu-auto-close" class="w-full px-4 py-2 rounded-lg border border-gray-300 outline-none">
+                                </div>
+                                <div class="md:col-span-2">
+                                    <p class="text-xs text-gray-400">Biarkan kosong jika ingin menu selalu aktif (tanpa jadwal).</p>
+                                </div>
 
                                 <div class="md:col-span-2"><button type="submit" id="btn-save-menu" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors shadow"><i class="fa-solid fa-plus mr-2"></i> Simpan ke Database</button></div>
                             </form>
-                            <div class="mt-4 p-3 bg-blue-50 text-blue-700 text-sm rounded border border-blue-100">
-                                <i class="fa-brands fa-youtube mr-2"></i> <strong>Tips:</strong> Anda bisa memasukkan link YouTube biasa (cth: <code>https://www.youtube.com/watch?v=xxxxx</code>), sistem akan otomatis menyesuaikannya agar bisa diputar.
-                            </div>
                         </div>
                         <div class="bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden">
-                            <div class="px-6 py-4 border-b border-gray-200 bg-gray-50 flex justify-between items-center"><h3 class="font-bold text-gray-700">Daftar Menu Aktif</h3><button onclick="fetchFromDatabase()" class="text-xs text-blue-500 hover:text-blue-700 underline"><i class="fa-solid fa-rotate mr-1"></i>Refresh Data</button></div>
+                            <div class="px-6 py-4 border-b border-gray-200 bg-gray-50 flex justify-between items-center"><h3 class="font-bold text-gray-700">Daftar Menu Aktif</h3><button onclick="fetchFromDatabase(false)" class="text-xs text-blue-500 hover:text-blue-700 underline"><i class="fa-solid fa-rotate mr-1"></i>Refresh Data</button></div>
                             <div id="settings-menu-list" class="divide-y divide-gray-100"></div>
                         </div>
                     </div>
@@ -209,6 +234,7 @@
         // --- STATE MANAGEMENT ---
         let announcements = [];
         let menus = [];
+        let lastFetchedData = ""; 
 
         // --- COLOR MAPS ---
         const gradients = { blue: 'from-blue-500 to-blue-600', green: 'from-emerald-500 to-emerald-600', purple: 'from-purple-500 to-purple-600', orange: 'from-orange-500 to-orange-600', red: 'from-red-500 to-red-600' };
@@ -223,6 +249,7 @@
         const externalLink = document.getElementById('external-link');
         const iframeError = document.getElementById('iframe-error');
         const appLoading = document.getElementById('app-loading');
+        const curfewBanner = document.getElementById('curfew-banner');
 
         // --- INITIALIZATION ---
         init();
@@ -233,25 +260,37 @@
                 appLoading.innerHTML = '<div class="text-center p-4"><h3 class="text-xl font-bold text-red-600">Error Konfigurasi</h3><p>Anda belum memasukkan URL Google Script di dalam kode HTML.</p></div>';
                 return;
             }
-            await fetchFromDatabase();
+            await fetchFromDatabase(false); 
+            
+            // --- REALTIME POLLING ---
+            setInterval(() => fetchFromDatabase(true), 5000); 
+            setInterval(refreshUI, 60000); 
         }
 
         // --- DATABASE FUNCTIONS (FETCH API) ---
-        async function fetchFromDatabase() {
+        async function fetchFromDatabase(isBackground = false) {
             try {
-                const response = await fetch(GOOGLE_SCRIPT_URL);
+                const response = await fetch(GOOGLE_SCRIPT_URL + '?action=read&t=' + new Date().getTime());
                 const data = await response.json();
                 
                 if (data.status === 'success') {
-                    menus = data.menus;
-                    announcements = data.announcements;
-                    refreshUI();
-                    appLoading.classList.add('hidden');
+                    const currentDataString = JSON.stringify(data);
+                    if (currentDataString !== lastFetchedData) {
+                        menus = data.menus;
+                        announcements = data.announcements;
+                        lastFetchedData = currentDataString;
+                        refreshUI();
+                        console.log("Data updated from server.");
+                    }
+                    
+                    if (!isBackground) appLoading.classList.add('hidden');
                 }
             } catch (error) {
                 console.error("Error fetching data:", error);
-                Swal.fire("Gagal Terhubung", "Tidak dapat mengambil data dari database. Periksa koneksi internet.", "error");
-                appLoading.classList.add('hidden');
+                if (!isBackground) {
+                    Swal.fire("Gagal Terhubung", "Tidak dapat mengambil data dari database. Periksa koneksi internet.", "error");
+                    appLoading.classList.add('hidden');
+                }
             }
         }
 
@@ -259,7 +298,6 @@
             Swal.fire({ title: 'Menyimpan...', text: 'Sedang sinkronisasi dengan Google Sheet', allowOutsideClick: false, didOpen: () => { Swal.showLoading() } });
             
             try {
-                // Apps Script requires simple POST body stringified
                 const response = await fetch(GOOGLE_SCRIPT_URL, {
                     method: 'POST',
                     body: JSON.stringify({ action: action, ...payload })
@@ -269,6 +307,7 @@
                 if (data.status === 'success') {
                     menus = data.menus;
                     announcements = data.announcements;
+                    lastFetchedData = JSON.stringify(data);
                     refreshUI();
                     Swal.fire("Berhasil", "Data berhasil disimpan di Database!", "success");
                 }
@@ -285,12 +324,51 @@
             renderAnnouncementSettingsList();
         }
 
+        // --- HELPER: DETAILED MENU STATUS ---
+        // Fungsi ini mengembalikan status detail (Objek) untuk Admin & Logic
+        function getMenuTimeStatus(menu) {
+            // 1. Cek Status Manual
+            const manualStatus = menu.status ? menu.status.toString().toLowerCase() : 'active';
+            if (manualStatus === 'inactive') {
+                return { code: 'manual_inactive', label: 'Non-Aktif (Manual)', color: 'gray', isActive: false };
+            }
+
+            // Time parsing
+            const now = new Date();
+            const currentTotalMinutes = (now.getHours() * 60) + now.getMinutes();
+            
+            const timeToMinutes = (timeStr) => {
+                if (!timeStr || typeof timeStr !== 'string' || !timeStr.includes(':')) return null;
+                const [h, m] = timeStr.split(':').map(Number);
+                return (h * 60) + m;
+            };
+
+            // 2. Cek Jam Buka
+            if (menu.auto_open) {
+                const openMins = timeToMinutes(menu.auto_open);
+                if (openMins !== null && currentTotalMinutes < openMins) {
+                    return { code: 'not_open_yet', label: `Belum Buka (Jadwal: ${menu.auto_open})`, color: 'yellow', isActive: false };
+                }
+            }
+
+            // 3. Cek Jam Tutup
+            if (menu.auto_close) {
+                const closeMins = timeToMinutes(menu.auto_close);
+                if (closeMins !== null && currentTotalMinutes >= closeMins) {
+                    return { code: 'closed', label: `Sudah Tutup (Jadwal: ${menu.auto_close})`, color: 'red', isActive: false };
+                }
+            }
+
+            return { code: 'active', label: 'Aktif', color: 'green', isActive: true };
+        }
+
         // --- RENDER FUNCTIONS ---
         function renderSidebar() {
             sidebarMenuContainer.innerHTML = '';
+            
             menus.forEach(menu => {
-                // FILTER: Hanya tampilkan jika status 'active' (atau tidak ada properti status)
-                if (menu.status === 'inactive') return; 
+                const statusObj = getMenuTimeStatus(menu);
+                if (!statusObj.isActive) return; // Sembunyikan jika tidak aktif
 
                 const btn = document.createElement('button');
                 btn.id = `btn-${menu.id}`;
@@ -303,9 +381,17 @@
 
         function renderHome() {
             homeCardsContainer.innerHTML = '';
+            let timeRestrictedCount = 0;
+
             menus.forEach(menu => {
-                // FILTER: Hanya tampilkan jika status 'active'
-                if (menu.status === 'inactive') return; 
+                const statusObj = getMenuTimeStatus(menu);
+                if (!statusObj.isActive) {
+                    // Hanya hitung jika disembunyikan karena alasan waktu (Bukan manual Non-Aktif)
+                    if (statusObj.code === 'not_open_yet' || statusObj.code === 'closed') {
+                        timeRestrictedCount++;
+                    }
+                    return; 
+                }
 
                 const gradient = gradients[menu.color] || gradients.blue;
                 const textColor = textColors[menu.color] || textColors.blue;
@@ -315,6 +401,13 @@
                 card.innerHTML = `<div class="flex justify-between items-start"><div class="overflow-hidden"><p class="${textColor} text-sm font-medium mb-1 truncate opacity-90">Menu Utama</p><h3 class="text-xl font-bold truncate pr-2">${menu.title}</h3></div><div class="bg-white/20 p-2 rounded-lg flex-shrink-0"><i class="fa-solid ${menu.icon} text-xl"></i></div></div><p class="mt-4 text-xs bg-white/20 inline-block px-2 py-1 rounded text-white">Buka Menu</p>`;
                 homeCardsContainer.appendChild(card);
             });
+
+            // Tampilkan info hanya jika ada menu yang disembunyikan karena waktu
+            if (timeRestrictedCount > 0) {
+                curfewBanner.classList.remove('hidden');
+            } else {
+                curfewBanner.classList.add('hidden');
+            }
 
             const annList = document.getElementById('announcement-list');
             annList.innerHTML = '';
@@ -340,7 +433,9 @@
                 url: document.getElementById('menu-url').value,
                 icon: document.getElementById('menu-icon').value,
                 color: document.getElementById('menu-color').value,
-                status: document.getElementById('menu-status').value // AMBIL DATA STATUS
+                status: document.getElementById('menu-status').value,
+                auto_close: document.getElementById('menu-auto-close').value, 
+                auto_open: document.getElementById('menu-auto-open').value 
             };
             sendToDatabase('saveMenu', { data: data });
             resetMenuForm();
@@ -374,12 +469,29 @@
         function renderMenuSettingsList() {
             const list = document.getElementById('settings-menu-list'); list.innerHTML = '';
             menus.forEach(menu => {
-                // TENTUKAN WARNA BADGE STATUS
-                const statusBadge = menu.status === 'inactive' 
-                    ? '<span class="px-2 py-1 text-xs rounded-full bg-gray-200 text-gray-600 border border-gray-300">Non-Aktif</span>' 
-                    : '<span class="px-2 py-1 text-xs rounded-full bg-green-100 text-green-700 border border-green-200">Aktif</span>';
+                const statusObj = getMenuTimeStatus(menu);
 
-                list.innerHTML += `<div class="p-4 flex flex-col md:flex-row justify-between items-center hover:bg-gray-50 gap-4"><div class="flex items-center gap-4 flex-1 overflow-hidden"><div class="w-10 h-10 rounded bg-gray-100 flex items-center justify-center text-gray-600"><i class="fa-solid ${menu.icon}"></i></div><div class="min-w-0"><div class="flex items-center gap-2"><h4 class="font-bold text-gray-800 truncate">${menu.title}</h4>${statusBadge}</div><p class="text-xs text-blue-600 truncate font-mono">${menu.url}</p></div></div><div class="flex gap-2 shrink-0"><button onclick="editMenu('${menu.id}')" class="px-3 py-1.5 bg-yellow-100 text-yellow-700 rounded text-sm font-medium">Edit</button><button onclick="deleteMenu('${menu.id}')" class="px-3 py-1.5 bg-red-100 text-red-700 rounded text-sm font-medium">Hapus</button></div></div>`;
+                // Buat Badge Status sesuai kondisi (Manual, Belum Buka, Tutup, Aktif)
+                let statusBadge = '';
+                if (statusObj.code === 'manual_inactive') {
+                    statusBadge = '<span class="px-2 py-1 text-xs rounded-full bg-gray-200 text-gray-600 border border-gray-300">Non-Aktif</span>';
+                } else if (statusObj.code === 'not_open_yet') {
+                    statusBadge = `<span class="px-2 py-1 text-xs rounded-full bg-yellow-100 text-yellow-700 border border-yellow-200 font-bold"><i class="fa-solid fa-hourglass-start mr-1"></i>${statusObj.label}</span>`;
+                } else if (statusObj.code === 'closed') {
+                    statusBadge = `<span class="px-2 py-1 text-xs rounded-full bg-red-100 text-red-700 border border-red-200 font-bold"><i class="fa-solid fa-lock mr-1"></i>${statusObj.label}</span>`;
+                } else {
+                    statusBadge = '<span class="px-2 py-1 text-xs rounded-full bg-green-100 text-green-700 border border-green-200 font-bold"><i class="fa-solid fa-check mr-1"></i>Aktif</span>';
+                }
+                
+                let timeBadge = '';
+                const openTime = menu.auto_open ? menu.auto_open : '...';
+                const closeTime = menu.auto_close ? menu.auto_close : '...';
+                
+                if (menu.auto_open || menu.auto_close) {
+                    timeBadge = `<span class="px-2 py-1 text-xs rounded-full bg-blue-50 text-blue-600 border border-blue-100 ml-1 font-mono text-[10px]">${openTime} - ${closeTime}</span>`;
+                }
+
+                list.innerHTML += `<div class="p-4 flex flex-col md:flex-row justify-between items-center hover:bg-gray-50 gap-4"><div class="flex items-center gap-4 flex-1 overflow-hidden"><div class="w-10 h-10 rounded bg-gray-100 flex items-center justify-center text-gray-600"><i class="fa-solid ${menu.icon}"></i></div><div class="min-w-0"><div class="flex items-center gap-2 flex-wrap"><h4 class="font-bold text-gray-800 truncate">${menu.title}</h4>${statusBadge}${timeBadge}</div><p class="text-xs text-blue-600 truncate font-mono">${menu.url}</p></div></div><div class="flex gap-2 shrink-0"><button onclick="editMenu('${menu.id}')" class="px-3 py-1.5 bg-yellow-100 text-yellow-700 rounded text-sm font-medium">Edit</button><button onclick="deleteMenu('${menu.id}')" class="px-3 py-1.5 bg-red-100 text-red-700 rounded text-sm font-medium">Hapus</button></div></div>`;
             });
         }
         function renderAnnouncementSettingsList() {
@@ -397,8 +509,15 @@
                 document.getElementById('menu-url').value = item.url; 
                 document.getElementById('menu-icon').value = item.icon; 
                 document.getElementById('menu-color').value = item.color;
-                // ISI DROPDOWN STATUS SAAT EDIT
-                document.getElementById('menu-status').value = item.status || 'active'; 
+                document.getElementById('menu-status').value = (item.status && item.status.toString().toLowerCase() === 'inactive') ? 'inactive' : 'active'; 
+                
+                // ISI FIELD AUTO OPEN & CLOSE (Format sudah HH:MM)
+                // Pastikan format jam 5 digit (misal: "07:30")
+                const formatTime = (t) => t ? (t.length === 4 ? '0' + t : t) : '';
+                
+                document.getElementById('menu-auto-close').value = formatTime(item.auto_close); 
+                document.getElementById('menu-auto-open').value = formatTime(item.auto_open); 
+
                 document.getElementById('btn-save-menu').innerHTML = 'Update Menu di Database'; 
             }
         }
@@ -410,7 +529,9 @@
             document.getElementById('menu-edit-id').value = ''; 
             document.getElementById('menu-title').value = ''; 
             document.getElementById('menu-url').value = ''; 
-            document.getElementById('menu-status').value = 'active'; // RESET STATUS
+            document.getElementById('menu-status').value = 'active'; 
+            document.getElementById('menu-auto-close').value = ''; 
+            document.getElementById('menu-auto-open').value = ''; 
             document.getElementById('btn-save-menu').innerHTML = '<i class="fa-solid fa-plus mr-2"></i> Simpan ke Database'; 
         }
 
@@ -474,3 +595,5 @@
     </script>
 </body>
 </html>
+
+
