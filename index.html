@@ -111,10 +111,6 @@
                     <span id="digital-clock" class="text-sm font-mono font-bold text-blue-600">00:00:00</span>
                     <span id="current-date" class="text-xs text-gray-500">Senin, 1 Jan 2024</span>
                 </div>
-                <!-- Toggle Link Button (Hidden by default) -->
-                <button id="btn-switch-link" class="hidden p-2 text-purple-600 hover:bg-purple-50 rounded-full transition-colors font-medium text-sm flex items-center gap-2 px-3 border border-purple-200 bg-purple-50/50" title="Ganti Link Alternatif">
-                    <i class="fa-solid fa-shuffle"></i> <span class="hidden md:inline">Ganti Link</span>
-                </button>
                 <button onclick="toggleFullscreen()" class="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-full" title="Layar Penuh"><i id="fullscreen-icon" class="fa-solid fa-expand"></i></button>
             </div>
         </header>
@@ -138,8 +134,7 @@
                     <div id="iframe-error" class="hidden absolute inset-0 flex flex-col items-center justify-center bg-gray-50 p-6 text-center">
                         <i class="fa-solid fa-face-frown text-6xl text-gray-300 mb-4"></i>
                         <h3 class="text-xl font-bold text-gray-700">Tidak dapat memuat halaman</h3>
-                        <p class="text-sm text-gray-500 mt-2 mb-4">Jika ada Link Alternatif, coba klik tombol "Ganti Link" di atas kanan.</p>
-                        <a id="external-link" href="#" target="_blank" class="mt-2 bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700">Buka di Tab Baru</a>
+                        <a id="external-link" href="#" target="_blank" class="mt-4 bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700">Buka di Tab Baru</a>
                     </div>
                 </div>
             </div>
@@ -159,22 +154,17 @@
                             </div>
                             <form onsubmit="saveMenu(event)" class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <input type="hidden" id="menu-edit-id">
-                                <div class="col-span-1 md:col-span-2"><label class="block text-sm font-medium text-gray-700 mb-1">Nama Menu</label><input type="text" id="menu-title" class="w-full px-4 py-2 rounded-lg border border-gray-300 outline-none" placeholder="Cth: Video Materi" required></div>
+                                <div class="col-span-1"><label class="block text-sm font-medium text-gray-700 mb-1">Nama Menu</label><input type="text" id="menu-title" class="w-full px-4 py-2 rounded-lg border border-gray-300 outline-none" placeholder="Cth: Video Materi" required></div>
                                 
                                 <div class="col-span-1">
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Link URL Utama</label>
-                                    <input type="url" id="menu-url" class="w-full px-4 py-2 rounded-lg border border-gray-300 outline-none" placeholder="https://..." required>
-                                </div>
-                                <div class="col-span-1">
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Link Alternatif / Cadangan <span class="text-xs text-gray-400 font-normal">(Opsional)</span></label>
-                                    <input type="url" id="menu-url-backup" class="w-full px-4 py-2 rounded-lg border border-gray-300 outline-none" placeholder="https://...">
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Link URL / YouTube / G-Docs</label>
+                                    <input type="url" id="menu-url" class="w-full px-4 py-2 rounded-lg border border-gray-300 outline-none" placeholder="https://youtube.com/watch?v=... atau https://docs.google.com/..." required>
                                 </div>
 
                                 <div><label class="block text-sm font-medium text-gray-700 mb-1">Ikon</label><select id="menu-icon" class="w-full px-4 py-2 rounded-lg border border-gray-300 outline-none"><option value="fa-desktop">Desktop</option><option value="fa-book-open">Buku</option><option value="fa-pen-to-square">Tulis</option><option value="fa-video">Video</option><option value="fa-brands fa-youtube">YouTube (Logo)</option><option value="fa-file-pdf">Dokumen</option><option value="fa-globe">Bola Dunia</option></select></div>
                                 <div><label class="block text-sm font-medium text-gray-700 mb-1">Warna</label><select id="menu-color" class="w-full px-4 py-2 rounded-lg border border-gray-300 outline-none"><option value="blue">Biru</option><option value="green">Hijau</option><option value="purple">Ungu</option><option value="orange">Oranye</option><option value="red">Merah</option></select></div>
                                 <div class="md:col-span-2"><button type="submit" id="btn-save-menu" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors shadow"><i class="fa-solid fa-plus mr-2"></i> Simpan ke Database</button></div>
                             </form>
-                            <p class="text-xs text-gray-400 mt-2 italic">*Catatan: Untuk menyimpan Link Alternatif, pastikan kolom "url_backup" sudah ada di Google Sheet.</p>
                         </div>
                         <div class="bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden">
                             <div class="px-6 py-4 border-b border-gray-200 bg-gray-50 flex justify-between items-center"><h3 class="font-bold text-gray-700">Daftar Menu Aktif</h3><button onclick="fetchFromDatabase()" class="text-xs text-blue-500 hover:text-blue-700 underline"><i class="fa-solid fa-rotate mr-1"></i>Refresh Data</button></div>
@@ -227,10 +217,6 @@
         const externalLink = document.getElementById('external-link');
         const iframeError = document.getElementById('iframe-error');
         const appLoading = document.getElementById('app-loading');
-        const btnSwitchLink = document.getElementById('btn-switch-link');
-        
-        let currentMenu = null;
-        let isUsingBackup = false;
 
         init();
 
@@ -348,7 +334,6 @@
                 id: id || 'menu_' + Date.now(),
                 title: document.getElementById('menu-title').value,
                 url: document.getElementById('menu-url').value,
-                url_backup: document.getElementById('menu-url-backup').value,
                 icon: document.getElementById('menu-icon').value,
                 color: document.getElementById('menu-color').value
             };
@@ -383,7 +368,6 @@
         function renderMenuSettingsList() {
             const list = document.getElementById('settings-menu-list'); list.innerHTML = '';
             menus.forEach(menu => {
-                const hasBackup = menu.url_backup ? '<span class="text-[10px] text-green-600 bg-green-100 px-1 rounded border border-green-200 ml-2">Ada Backup</span>' : '';
                 list.innerHTML += `
                 <div class="p-4 flex flex-col md:flex-row justify-between items-center hover:bg-gray-50 gap-4 border-b border-gray-100 last:border-0">
                     <div class="flex items-center gap-4 flex-1 overflow-hidden">
@@ -391,16 +375,10 @@
                             <i class="fa-solid ${menu.icon}"></i>
                         </div>
                         <div class="min-w-0 flex flex-col">
-                            <h4 class="font-bold text-gray-800 truncate text-sm flex items-center">${menu.title} ${hasBackup}</h4>
-                            <div class="flex flex-col gap-0.5">
-                                <a href="${menu.url}" target="_blank" class="text-xs text-blue-600 truncate font-mono hover:underline hover:text-blue-800 flex items-center gap-1" title="Link Utama">
-                                    <span class="text-gray-400 w-12 inline-block">Utama:</span> ${menu.url}
-                                </a>
-                                ${menu.url_backup ? `
-                                <a href="${menu.url_backup}" target="_blank" class="text-xs text-green-600 truncate font-mono hover:underline hover:text-green-800 flex items-center gap-1" title="Link Backup">
-                                    <span class="text-gray-400 w-12 inline-block">Backup:</span> ${menu.url_backup}
-                                </a>` : ''}
-                            </div>
+                            <h4 class="font-bold text-gray-800 truncate text-sm">${menu.title}</h4>
+                            <a href="${menu.url}" target="_blank" class="text-xs text-blue-600 truncate font-mono hover:underline hover:text-blue-800 flex items-center gap-1" title="Klik untuk tes link">
+                                <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i> ${menu.url}
+                            </a>
                         </div>
                     </div>
                     <div class="flex gap-2 shrink-0">
@@ -427,7 +405,6 @@
                 document.getElementById('menu-edit-id').value = item.id; 
                 document.getElementById('menu-title').value = item.title; 
                 document.getElementById('menu-url').value = item.url; 
-                document.getElementById('menu-url-backup').value = item.url_backup || '';
                 document.getElementById('menu-icon').value = item.icon; 
                 document.getElementById('menu-color').value = item.color; 
                 document.getElementById('btn-save-menu').innerHTML = 'Update Menu di Database'; 
@@ -441,7 +418,6 @@
             document.getElementById('menu-edit-id').value = ''; 
             document.getElementById('menu-title').value = ''; 
             document.getElementById('menu-url').value = ''; 
-            document.getElementById('menu-url-backup').value = ''; 
             document.getElementById('btn-save-menu').innerHTML = '<i class="fa-solid fa-plus mr-2"></i> Simpan ke Database'; 
         }
 
@@ -459,7 +435,6 @@
             
             ['view-home', 'view-iframe-wrapper', 'view-settings'].forEach(id => document.getElementById(id).classList.add('hidden'));
             mainIframe.src = '';
-            btnSwitchLink.classList.add('hidden'); // Reset switch button
 
             if (viewId === 'home') { 
                 pageTitle.textContent = 'Dashboard Utama'; 
@@ -472,50 +447,31 @@
                 refreshUI(); 
             }
             else {
-                currentMenu = menus.find(m => m.id === viewId);
-                if (currentMenu) {
-                    pageTitle.textContent = currentMenu.title; 
+                const menuItem = menus.find(m => m.id === viewId);
+                if (menuItem) {
+                    pageTitle.textContent = menuItem.title; 
                     document.getElementById('view-iframe-wrapper').classList.remove('hidden'); 
                     loader.style.display = 'block'; 
                     iframeError.classList.add('hidden');
                     
-                    isUsingBackup = false; // Reset to main link
-                    loadIframeUrl(currentMenu.url);
-
-                    // Show Switch Button if backup exists
-                    if (currentMenu.url_backup) {
-                        btnSwitchLink.classList.remove('hidden');
-                        btnSwitchLink.onclick = () => {
-                            isUsingBackup = !isUsingBackup;
-                            const targetUrl = isUsingBackup ? currentMenu.url_backup : currentMenu.url;
-                            loadIframeUrl(targetUrl);
-                            
-                            // Visual Feedback
-                            const textSpan = btnSwitchLink.querySelector('span');
-                            textSpan.textContent = isUsingBackup ? "Kembali ke Utama" : "Ganti Link";
-                            btnSwitchLink.classList.toggle('bg-purple-100', isUsingBackup);
-                            
-                            Swal.fire({
-                                toast: true, position: 'top-end', icon: 'info', 
-                                title: isUsingBackup ? 'Menggunakan Link Alternatif' : 'Menggunakan Link Utama',
-                                showConfirmButton: false, timer: 1500
-                            });
-                        };
+                    // --- SMART URL HANDLING ---
+                    const youtubeId = getYoutubeId(menuItem.url);
+                    if (youtubeId) {
+                        externalLink.href = menuItem.url; 
+                        mainIframe.src = `https://www.youtube.com/embed/${youtubeId}?autoplay=1&rel=0`;
+                    } else if (menuItem.url.includes('docs.google.com') && menuItem.url.includes('/edit')) {
+                        externalLink.href = menuItem.url;
+                        mainIframe.src = menuItem.url.replace(/\/edit.*/, '/preview');
+                    } else {
+                        externalLink.href = menuItem.url; 
+                        mainIframe.src = menuItem.url;
                     }
+
+                    mainIframe.onload = () => loader.style.display = 'none'; 
+                    mainIframe.onerror = () => { loader.style.display = 'none'; iframeError.classList.remove('hidden'); };
                 }
             }
         }
-        
-        function loadIframeUrl(url) {
-            loader.style.display = 'block';
-            const smartUrl = processUrl(url);
-            externalLink.href = url; // Always link to original
-            mainIframe.src = smartUrl;
-            
-            mainIframe.onload = () => loader.style.display = 'none'; 
-            mainIframe.onerror = () => { loader.style.display = 'none'; iframeError.classList.remove('hidden'); };
-        }
-
         function closePasswordModal() { document.getElementById('password-modal').classList.add('hidden'); }
         function verifyPassword(e) { e.preventDefault(); if (document.getElementById('admin-password').value === '112233') { closePasswordModal(); executeSwitch('settings'); } else Swal.fire('Password Salah', '', 'error'); }
         function switchSettingsTab(tabName) { document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active')); document.getElementById(`tab-btn-${tabName}`).classList.add('active'); document.getElementById('tab-content-menu').classList.add('hidden'); document.getElementById('tab-content-announcement').classList.add('hidden'); document.getElementById(`tab-content-${tabName}`).classList.remove('hidden'); }
