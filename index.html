@@ -16,7 +16,7 @@
         .custom-scrollbar::-webkit-scrollbar-track { background: #1e293b; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #475569; border-radius: 5px; }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #64748b; }
-        .iframe-container { position: relative; width: 100%; height: 100%; overflow: hidden; background-color: white; border-radius: 0; }
+        .iframe-container { position: relative; width: 100%; height: 100%; overflow: hidden; background-color: black; border-radius: 0; }
         iframe { width: 100%; height: 100%; border: none; }
         .nav-item.active { background-color: #2563eb; color: white; }
         .nav-item.active i { color: white; }
@@ -32,7 +32,7 @@
     <!-- Loading Overlay Fullscreen (Initial Load) -->
     <div id="app-loading" class="fixed inset-0 z-[60] bg-white flex flex-col items-center justify-center">
         <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-blue-600 mb-4"></div>
-        <p class="text-gray-600 font-medium">Loading...</p>
+        <p class="text-gray-600 font-medium">Menghubungkan ke Database...</p>
     </div>
 
     <div id="mobile-overlay" onclick="toggleSidebar()" class="fixed inset-0 bg-black opacity-50 z-20 hidden lg:hidden"></div>
@@ -128,9 +128,9 @@
                 </div>
             </div>
 
-            <div id="view-iframe-wrapper" class="hidden w-full h-full bg-white">
+            <div id="view-iframe-wrapper" class="hidden w-full h-full bg-black">
                 <div class="iframe-container">
-                    <iframe id="main-iframe" src="" allowfullscreen allow="camera; microphone; display-capture"></iframe>
+                    <iframe id="main-iframe" src="" allowfullscreen="true" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"></iframe>
                     <div id="iframe-error" class="hidden absolute inset-0 flex flex-col items-center justify-center bg-gray-50 p-6 text-center">
                         <i class="fa-solid fa-face-frown text-6xl text-gray-300 mb-4"></i>
                         <h3 class="text-xl font-bold text-gray-700">Tidak dapat memuat halaman</h3>
@@ -154,9 +154,9 @@
                             </div>
                             <form onsubmit="saveMenu(event)" class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <input type="hidden" id="menu-edit-id">
-                                <div class="col-span-1"><label class="block text-sm font-medium text-gray-700 mb-1">Nama Menu</label><input type="text" id="menu-title" class="w-full px-4 py-2 rounded-lg border border-gray-300 outline-none" placeholder="Cth: Ujian Harian" required></div>
-                                <div class="col-span-1"><label class="block text-sm font-medium text-gray-700 mb-1">Link URL</label><input type="url" id="menu-url" class="w-full px-4 py-2 rounded-lg border border-gray-300 outline-none" placeholder="https://..." required></div>
-                                <div><label class="block text-sm font-medium text-gray-700 mb-1">Ikon</label><select id="menu-icon" class="w-full px-4 py-2 rounded-lg border border-gray-300 outline-none"><option value="fa-desktop">Desktop</option><option value="fa-book-open">Buku</option><option value="fa-pen-to-square">Tulis</option><option value="fa-video">Video</option><option value="fa-file-pdf">Dokumen</option><option value="fa-globe">Bola Dunia</option></select></div>
+                                <div class="col-span-1"><label class="block text-sm font-medium text-gray-700 mb-1">Nama Menu</label><input type="text" id="menu-title" class="w-full px-4 py-2 rounded-lg border border-gray-300 outline-none" placeholder="Cth: Video Pembelajaran" required></div>
+                                <div class="col-span-1"><label class="block text-sm font-medium text-gray-700 mb-1">Link URL / Youtube</label><input type="url" id="menu-url" class="w-full px-4 py-2 rounded-lg border border-gray-300 outline-none" placeholder="https://youtube.com/watch?v=..." required></div>
+                                <div><label class="block text-sm font-medium text-gray-700 mb-1">Ikon</label><select id="menu-icon" class="w-full px-4 py-2 rounded-lg border border-gray-300 outline-none"><option value="fa-desktop">Desktop</option><option value="fa-book-open">Buku</option><option value="fa-pen-to-square">Tulis</option><option value="fa-video">Video</option><option value="fa-brands fa-youtube">YouTube (Logo)</option><option value="fa-file-pdf">Dokumen</option><option value="fa-globe">Bola Dunia</option></select></div>
                                 <div><label class="block text-sm font-medium text-gray-700 mb-1">Warna</label><select id="menu-color" class="w-full px-4 py-2 rounded-lg border border-gray-300 outline-none"><option value="blue">Biru</option><option value="green">Hijau</option><option value="purple">Ungu</option><option value="orange">Oranye</option><option value="red">Merah</option></select></div>
                                 <div class="md:col-span-2"><button type="submit" id="btn-save-menu" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors shadow"><i class="fa-solid fa-plus mr-2"></i> Simpan ke Database</button></div>
                             </form>
@@ -198,15 +198,12 @@
         const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxutgbPKy6Y3dQ0oWGE04lFbrg4EKWtekFCFozs4e-VokuKUc3HWeO0jfnDfDrgyKmU/exec';
         // =============================================================
 
-        // --- STATE MANAGEMENT ---
         let announcements = [];
         let menus = [];
 
-        // --- COLOR MAPS ---
         const gradients = { blue: 'from-blue-500 to-blue-600', green: 'from-emerald-500 to-emerald-600', purple: 'from-purple-500 to-purple-600', orange: 'from-orange-500 to-orange-600', red: 'from-red-500 to-red-600' };
         const textColors = { blue: 'text-blue-100', green: 'text-emerald-100', purple: 'text-purple-100', orange: 'text-orange-100', red: 'text-red-100' };
 
-        // --- DOM Elements ---
         const mainIframe = document.getElementById('main-iframe');
         const loader = document.getElementById('loader');
         const pageTitle = document.getElementById('page-title');
@@ -216,7 +213,6 @@
         const iframeError = document.getElementById('iframe-error');
         const appLoading = document.getElementById('app-loading');
 
-        // --- INITIALIZATION ---
         init();
 
         async function init() {
@@ -228,7 +224,15 @@
             await fetchFromDatabase();
         }
 
-        // --- DATABASE FUNCTIONS (FETCH API) ---
+        // --- YOUTUBE HELPER FUNCTION ---
+        function getYoutubeId(url) {
+            if (!url) return null;
+            // Regex to check for youtube links (standard, shortened, embed)
+            const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+            const match = url.match(regExp);
+            return (match && match[2].length === 11) ? match[2] : null;
+        }
+
         async function fetchFromDatabase() {
             try {
                 const response = await fetch(GOOGLE_SCRIPT_URL);
@@ -249,15 +253,12 @@
 
         async function sendToDatabase(action, payload) {
             Swal.fire({ title: 'Menyimpan...', text: 'Sedang sinkronisasi dengan Google Sheet', allowOutsideClick: false, didOpen: () => { Swal.showLoading() } });
-            
             try {
-                // Apps Script requires simple POST body stringified
                 const response = await fetch(GOOGLE_SCRIPT_URL, {
                     method: 'POST',
                     body: JSON.stringify({ action: action, ...payload })
                 });
                 const data = await response.json();
-                
                 if (data.status === 'success') {
                     menus = data.menus;
                     announcements = data.announcements;
@@ -277,7 +278,6 @@
             renderAnnouncementSettingsList();
         }
 
-        // --- RENDER FUNCTIONS ---
         function renderSidebar() {
             sidebarMenuContainer.innerHTML = '';
             menus.forEach(menu => {
@@ -316,7 +316,6 @@
             });
         }
 
-        // --- CRUD LOGIC (Now calls Database) ---
         function saveMenu(e) {
             e.preventDefault();
             const id = document.getElementById('menu-edit-id').value;
@@ -355,7 +354,6 @@
             Swal.fire({ title: 'Hapus?', icon: 'warning', showCancelButton: true, confirmButtonText: 'Ya' }).then((r) => { if(r.isConfirmed) sendToDatabase('deleteAnnouncement', { id: id }); });
         }
 
-        // --- EDIT & RENDER LISTS (Helper) ---
         function renderMenuSettingsList() {
             const list = document.getElementById('settings-menu-list'); list.innerHTML = '';
             menus.forEach(menu => {
@@ -379,11 +377,11 @@
         }
         function resetMenuForm() { document.getElementById('menu-edit-id').value = ''; document.getElementById('menu-title').value = ''; document.getElementById('menu-url').value = ''; document.getElementById('btn-save-menu').innerHTML = '<i class="fa-solid fa-plus mr-2"></i> Simpan ke Database'; }
 
-        // --- NAVIGATION & UTILS ---
         function switchView(viewId) {
             if (viewId === 'settings') { document.getElementById('password-modal').classList.remove('hidden'); document.getElementById('admin-password').value = ''; return; }
             executeSwitch(viewId);
         }
+        
         function executeSwitch(viewId) {
             document.querySelectorAll('.nav-item').forEach(el => { el.classList.remove('active', 'bg-blue-600', 'text-white'); el.classList.add('hover:bg-slate-800'); el.querySelector('i').classList.add('text-slate-400'); });
             const activeBtn = document.getElementById(`btn-${viewId}`);
@@ -394,14 +392,38 @@
             ['view-home', 'view-iframe-wrapper', 'view-settings'].forEach(id => document.getElementById(id).classList.add('hidden'));
             mainIframe.src = '';
 
-            if (viewId === 'home') { pageTitle.textContent = 'Dashboard Utama'; document.getElementById('view-home').classList.remove('hidden'); refreshUI(); }
-            else if (viewId === 'settings') { pageTitle.textContent = 'Pengaturan Admin (Database)'; document.getElementById('view-settings').classList.remove('hidden'); refreshUI(); }
+            if (viewId === 'home') { 
+                pageTitle.textContent = 'Dashboard Utama'; 
+                document.getElementById('view-home').classList.remove('hidden'); 
+                refreshUI(); 
+            }
+            else if (viewId === 'settings') { 
+                pageTitle.textContent = 'Pengaturan Admin (Database)'; 
+                document.getElementById('view-settings').classList.remove('hidden'); 
+                refreshUI(); 
+            }
             else {
                 const menuItem = menus.find(m => m.id === viewId);
                 if (menuItem) {
-                    pageTitle.textContent = menuItem.title; document.getElementById('view-iframe-wrapper').classList.remove('hidden'); loader.style.display = 'block'; iframeError.classList.add('hidden');
-                    externalLink.href = menuItem.url; mainIframe.src = menuItem.url;
-                    mainIframe.onload = () => loader.style.display = 'none'; mainIframe.onerror = () => { loader.style.display = 'none'; iframeError.classList.remove('hidden'); };
+                    pageTitle.textContent = menuItem.title; 
+                    document.getElementById('view-iframe-wrapper').classList.remove('hidden'); 
+                    loader.style.display = 'block'; 
+                    iframeError.classList.add('hidden');
+                    
+                    // --- INTELLIGENT YOUTUBE DETECTION ---
+                    const youtubeId = getYoutubeId(menuItem.url);
+                    if (youtubeId) {
+                        // It's a YouTube video, use Embed URL
+                        externalLink.href = menuItem.url; // Keep original for "Open in New Tab"
+                        mainIframe.src = `https://www.youtube.com/embed/${youtubeId}?autoplay=1&rel=0`;
+                    } else {
+                        // Standard URL
+                        externalLink.href = menuItem.url; 
+                        mainIframe.src = menuItem.url;
+                    }
+
+                    mainIframe.onload = () => loader.style.display = 'none'; 
+                    mainIframe.onerror = () => { loader.style.display = 'none'; iframeError.classList.remove('hidden'); };
                 }
             }
         }
