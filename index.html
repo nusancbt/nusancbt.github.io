@@ -74,7 +74,7 @@
                 <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" alt="User Avatar" class="w-10 h-10 rounded-full bg-slate-600 border-2 border-slate-500">
                 <div>
                     <p class="text-sm font-semibold text-white">Siswa Peserta</p>
-                    <p class="text-xs text-slate-400">Kelas XII IPA 1</p>
+                    <p class="text-xs text-slate-400">Kelas TJKT</p>
                 </div>
             </div>
         </div>
@@ -130,10 +130,11 @@
 
             <div id="view-iframe-wrapper" class="hidden w-full h-full bg-white">
                 <div class="iframe-container">
-                    <iframe id="main-iframe" src="" allowfullscreen allow="camera; microphone; display-capture"></iframe>
+                    <iframe id="main-iframe" src="" allowfullscreen allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"></iframe>
                     <div id="iframe-error" class="hidden absolute inset-0 flex flex-col items-center justify-center bg-gray-50 p-6 text-center">
                         <i class="fa-solid fa-face-frown text-6xl text-gray-300 mb-4"></i>
                         <h3 class="text-xl font-bold text-gray-700">Tidak dapat memuat halaman</h3>
+                        <p class="text-sm text-gray-500 mt-2 max-w-md mx-auto">Mungkin website menolak ditampilkan dalam frame (X-Frame-Options) atau link rusak.</p>
                         <a id="external-link" href="#" target="_blank" class="mt-4 bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700">Buka di Tab Baru</a>
                     </div>
                 </div>
@@ -154,12 +155,15 @@
                             </div>
                             <form onsubmit="saveMenu(event)" class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <input type="hidden" id="menu-edit-id">
-                                <div class="col-span-1"><label class="block text-sm font-medium text-gray-700 mb-1">Nama Menu</label><input type="text" id="menu-title" class="w-full px-4 py-2 rounded-lg border border-gray-300 outline-none" placeholder="Cth: Ujian Harian" required></div>
-                                <div class="col-span-1"><label class="block text-sm font-medium text-gray-700 mb-1">Link URL</label><input type="url" id="menu-url" class="w-full px-4 py-2 rounded-lg border border-gray-300 outline-none" placeholder="https://..." required></div>
+                                <div class="col-span-1"><label class="block text-sm font-medium text-gray-700 mb-1">Nama Menu</label><input type="text" id="menu-title" class="w-full px-4 py-2 rounded-lg border border-gray-300 outline-none" placeholder="Cth: Video Pembelajaran" required></div>
+                                <div class="col-span-1"><label class="block text-sm font-medium text-gray-700 mb-1">Link URL</label><input type="url" id="menu-url" class="w-full px-4 py-2 rounded-lg border border-gray-300 outline-none" placeholder="https://youtube.com/..." required></div>
                                 <div><label class="block text-sm font-medium text-gray-700 mb-1">Ikon</label><select id="menu-icon" class="w-full px-4 py-2 rounded-lg border border-gray-300 outline-none"><option value="fa-desktop">Desktop</option><option value="fa-book-open">Buku</option><option value="fa-pen-to-square">Tulis</option><option value="fa-video">Video</option><option value="fa-file-pdf">Dokumen</option><option value="fa-globe">Bola Dunia</option></select></div>
                                 <div><label class="block text-sm font-medium text-gray-700 mb-1">Warna</label><select id="menu-color" class="w-full px-4 py-2 rounded-lg border border-gray-300 outline-none"><option value="blue">Biru</option><option value="green">Hijau</option><option value="purple">Ungu</option><option value="orange">Oranye</option><option value="red">Merah</option></select></div>
                                 <div class="md:col-span-2"><button type="submit" id="btn-save-menu" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors shadow"><i class="fa-solid fa-plus mr-2"></i> Simpan ke Database</button></div>
                             </form>
+                            <div class="mt-4 p-3 bg-blue-50 text-blue-700 text-sm rounded border border-blue-100">
+                                <i class="fa-brands fa-youtube mr-2"></i> <strong>Tips:</strong> Anda bisa memasukkan link YouTube biasa (cth: <code>https://www.youtube.com/watch?v=xxxxx</code>), sistem akan otomatis menyesuaikannya agar bisa diputar.
+                            </div>
                         </div>
                         <div class="bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden">
                             <div class="px-6 py-4 border-b border-gray-200 bg-gray-50 flex justify-between items-center"><h3 class="font-bold text-gray-700">Daftar Menu Aktif</h3><button onclick="fetchFromDatabase()" class="text-xs text-blue-500 hover:text-blue-700 underline"><i class="fa-solid fa-rotate mr-1"></i>Refresh Data</button></div>
@@ -379,6 +383,23 @@
         }
         function resetMenuForm() { document.getElementById('menu-edit-id').value = ''; document.getElementById('menu-title').value = ''; document.getElementById('menu-url').value = ''; document.getElementById('btn-save-menu').innerHTML = '<i class="fa-solid fa-plus mr-2"></i> Simpan ke Database'; }
 
+        // --- YOUTUBE HELPER FUNCTIONS ---
+        function getYoutubeEmbedUrl(url) {
+            // Regex ini menangani format:
+            // youtube.com/watch?v=ID
+            // youtu.be/ID
+            // youtube.com/embed/ID
+            const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+            const match = url.match(regExp);
+
+            if (match && match[2].length === 11) {
+                // Mengembalikan format embed dengan autoplay aktif
+                return 'https://www.youtube.com/embed/' + match[2] + '?autoplay=1&rel=0';
+            } else {
+                return url; // Kembalikan URL asli jika bukan youtube yang valid
+            }
+        }
+
         // --- NAVIGATION & UTILS ---
         function switchView(viewId) {
             if (viewId === 'settings') { document.getElementById('password-modal').classList.remove('hidden'); document.getElementById('admin-password').value = ''; return; }
@@ -399,9 +420,23 @@
             else {
                 const menuItem = menus.find(m => m.id === viewId);
                 if (menuItem) {
-                    pageTitle.textContent = menuItem.title; document.getElementById('view-iframe-wrapper').classList.remove('hidden'); loader.style.display = 'block'; iframeError.classList.add('hidden');
-                    externalLink.href = menuItem.url; mainIframe.src = menuItem.url;
-                    mainIframe.onload = () => loader.style.display = 'none'; mainIframe.onerror = () => { loader.style.display = 'none'; iframeError.classList.remove('hidden'); };
+                    pageTitle.textContent = menuItem.title; 
+                    document.getElementById('view-iframe-wrapper').classList.remove('hidden'); 
+                    loader.style.display = 'block'; 
+                    iframeError.classList.add('hidden');
+                    
+                    // --- LOGIC YOUTUBE BARU ---
+                    let finalUrl = menuItem.url;
+                    // Cek apakah URL mengandung youtube.com atau youtu.be
+                    if (finalUrl.includes('youtube.com') || finalUrl.includes('youtu.be')) {
+                        finalUrl = getYoutubeEmbedUrl(finalUrl);
+                    }
+
+                    externalLink.href = menuItem.url; // Link eksternal tetap link asli
+                    mainIframe.src = finalUrl; // Iframe menggunakan link embed
+
+                    mainIframe.onload = () => loader.style.display = 'none'; 
+                    mainIframe.onerror = () => { loader.style.display = 'none'; iframeError.classList.remove('hidden'); };
                 }
             }
         }
