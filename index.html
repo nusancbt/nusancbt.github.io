@@ -89,11 +89,6 @@
             <button onclick="switchView('settings')" id="btn-settings" class="nav-item w-full flex items-center gap-3 px-3 py-3 rounded-lg hover:bg-slate-800 transition-colors">
                 <i class="fa-solid fa-gear w-5 text-center text-slate-400 transition-colors"></i>
                 <span class="text-sm font-medium">Pengaturan</span>
-            </button>
-            <button class="nav-item w-full flex items-center gap-3 px-3 py-3 rounded-lg hover:bg-slate-800 text-red-400 hover:text-red-300 transition-colors mt-auto">
-                <i class="fa-solid fa-right-from-bracket w-5 text-center"></i>
-                <span class="text-sm font-medium">Keluar</span>
-            </button>
         </nav>
     </aside>
 
@@ -295,7 +290,7 @@
         }
 
         async function sendToDatabase(action, payload) {
-            Swal.fire({ title: 'Menyimpan...', text: 'Sedang sinkronisasi dengan Google Sheet', allowOutsideClick: false, didOpen: () => { Swal.showLoading() } });
+            Swal.fire({ title: 'Menyimpan...', text: 'Sedang sinkronisasi', allowOutsideClick: false, didOpen: () => { Swal.showLoading() } });
             
             try {
                 const response = await fetch(GOOGLE_SCRIPT_URL, {
