@@ -1,0 +1,758 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Siswa Terintegrasi</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .sidebar-transition { transition: transform 0.3s ease-in-out; }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        .playlist-scroll::-webkit-scrollbar { width: 6px; }
+        .playlist-scroll::-webkit-scrollbar-track { background: #f1f5f9; }
+        .playlist-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+        .playlist-scroll::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        .iframe-container { position: relative; width: 100%; height: 100%; overflow: hidden; background-color: white; }
+        iframe { width: 100%; height: 100%; border: none; }
+        .nav-item.active { background-color: #2563eb; color: white; }
+        .nav-item.active i { color: white; }
+        .loader { border: 4px solid #f3f3f3; border-top: 4px solid #3498db; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); display: none; z-index: 10; }
+        @keyframes spin { 0% { transform: translate(-50%, -50%) rotate(0deg); } 100% { transform: translate(-50%, -50%) rotate(360deg); } }
+        .modal-overlay { background-color: rgba(0, 0, 0, 0.5); backdrop-filter: blur(2px); }
+        .tab-btn.active { border-bottom: 2px solid #2563eb; color: #2563eb; font-weight: 600; background-color: #eff6ff; }
+        .tab-btn { color: #6b7280; font-weight: 500; transition: all 0.2s; }
+        .tab-btn:hover { background-color: #f9fafb; }
+        .playlist-item { transition: all 0.2s; border-left: 3px solid transparent; }
+        .playlist-item:hover { background-color: #f8fafc; }
+        .playlist-item.active { background-color: #eff6ff; border-left-color: #2563eb; }
+        .playlist-item.active .title { color: #1d4ed8; font-weight: 600; }
+        .playlist-item.active .icon-play { opacity: 1; }
+    </style>
+</head>
+<body class="bg-gray-100 h-screen overflow-hidden flex text-gray-800">
+
+    <div id="app-loading" class="fixed inset-0 z-[60] bg-white flex flex-col items-center justify-center">
+        <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-blue-600 mb-4"></div>
+        <p class="text-gray-600 font-medium">Memuat Aplikasi...</p>
+       
+    </div>
+
+    <div id="mobile-overlay" onclick="toggleSidebar()" class="fixed inset-0 bg-black opacity-50 z-20 hidden lg:hidden"></div>
+
+    <!-- Password Modal -->
+    <div id="password-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center modal-overlay">
+        <div class="bg-white rounded-xl shadow-2xl p-6 w-full max-w-sm mx-4">
+            <div class="text-center mb-6">
+                <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4 text-blue-600">
+                    <i class="fa-solid fa-lock text-2xl"></i>
+                </div>
+                <h3 class="text-xl font-bold text-gray-800">Akses Admin</h3>
+                <p class="text-sm text-gray-500 mt-1">Masukkan password untuk masuk.</p>
+            </div>
+            <form onsubmit="verifyPassword(event)">
+                <div class="mb-4">
+                    <input type="password" id="admin-password" class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 outline-none text-center tracking-widest text-lg" placeholder="••••••" required>
+                </div>
+                <div class="flex gap-3">
+                    <button type="button" onclick="closePasswordModal()" class="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200">Batal</button>
+                    <button type="submit" class="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 shadow-lg shadow-blue-500/30">Masuk</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Sidebar -->
+    <aside id="sidebar" class="bg-slate-900 text-slate-300 w-64 flex-shrink-0 fixed inset-y-0 left-0 z-30 transform -translate-x-full lg:relative lg:translate-x-0 sidebar-transition flex flex-col h-full shadow-xl">
+        <div class="h-16 flex items-center justify-center border-b border-slate-700 bg-slate-900 shadow-sm">
+            <div class="flex items-center gap-3">
+                <div class="bg-blue-600 text-white p-1.5 rounded-lg">
+                    <i class="fa-solid fa-graduation-cap text-xl"></i>
+                </div>
+                <h1 id="sidebar-app-name" class="text-xl font-bold text-white tracking-wide">NusanCBT</h1>
+            </div>
+        </div>
+        <div class="p-4 border-b border-slate-700 bg-slate-800/50">
+            <div class="flex items-center gap-3 mb-3">
+                <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" alt="User Avatar" class="w-10 h-10 rounded-full bg-slate-600 border-2 border-slate-500">
+                <div>
+                    <p class="text-sm font-semibold text-white">Siswa Peserta</p>
+                    <p id="sidebar-app-subtitle" class="text-xs text-slate-400">Kelas TJKT</p>
+                </div>
+            </div>
+        </div>
+        <nav class="flex-1 overflow-y-auto custom-scrollbar p-3 space-y-1">
+            <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2 mt-2 px-3">Menu Utama</div>
+            <button onclick="switchView('home')" id="btn-home" class="nav-item w-full flex items-center gap-3 px-3 py-3 rounded-lg hover:bg-slate-800 transition-colors active">
+                <i class="fa-solid fa-house w-5 text-center text-slate-400 transition-colors"></i>
+                <span class="text-sm font-medium">Dashboard</span>
+            </button>
+            <div id="sidebar-dynamic-menu"></div>
+            <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2 mt-6 px-3">Lainnya</div>
+            <button onclick="switchView('settings')" id="btn-settings" class="nav-item w-full flex items-center gap-3 px-3 py-3 rounded-lg hover:bg-slate-800 transition-colors">
+                <i class="fa-solid fa-gear w-5 text-center text-slate-400 transition-colors"></i>
+                <span class="text-sm font-medium">Pengaturan</span>           
+        </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-1 flex flex-col h-full relative w-full">
+        <header class="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-4 lg:px-6 shadow-sm z-10">
+            <div class="flex items-center gap-3">
+                <button onclick="toggleSidebar()" class="lg:hidden p-2 text-gray-600 hover:bg-gray-100 rounded-md">
+                    <i class="fa-solid fa-bars text-xl"></i>
+                </button>
+                <h2 id="page-title" class="text-lg font-bold text-gray-800">Dashboard Utama</h2>
+            </div>
+            <div class="flex items-center gap-4">
+                <div class="hidden md:flex flex-col items-end mr-2">
+                    <span id="digital-clock" class="text-sm font-mono font-bold text-blue-600">00:00:00</span>
+                    <span id="current-date" class="text-xs text-gray-500">Senin, 1 Jan 2024</span>
+                </div>
+                <button onclick="toggleFullscreen()" class="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-full" title="Layar Penuh"><i id="fullscreen-icon" class="fa-solid fa-expand"></i></button>
+            </div>
+        </header>
+
+        <!-- RUNNING TEXT / MARQUEE -->
+        <div id="marquee-container" class="bg-blue-600 text-white text-sm py-1.5 overflow-hidden whitespace-nowrap hidden">
+            <div id="marquee-text" class="inline-block animate-marquee pl-[100%]">
+                Selamat Datang di Aplikasi Ujian Online. Harap menjaga ketertiban.
+            </div>
+        </div>
+        <style>
+            @keyframes marquee { 0% { transform: translateX(0); } 100% { transform: translateX(-100%); } }
+            .animate-marquee { animation: marquee 20s linear infinite; }
+        </style>
+
+        <div id="content-area" class="flex-1 p-0 overflow-hidden relative bg-gray-50">
+            <div id="loader" class="loader"></div>
+
+            <!-- HOME VIEW -->
+            <div id="view-home" class="h-full overflow-y-auto p-4 lg:p-6 animate-fade-in custom-scrollbar">
+                <div id="curfew-banner" class="hidden mb-6 bg-yellow-50 border-l-4 border-yellow-500 p-4 rounded-r shadow-sm transition-all duration-300">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0 text-yellow-500"><i class="fa-solid fa-clock text-2xl"></i></div>
+                        <div class="ml-3">
+                            <h3 class="text-sm font-bold text-yellow-800">Info Akses Menu</h3>
+                            <p class="text-sm text-yellow-700 mt-1">Beberapa menu belum dibuka atau jadwal telah berakhir.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="home-cards-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-6"></div>
+                
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                    <h3 class="text-lg font-bold text-gray-800 mb-4 border-b pb-2 flex justify-between items-center">
+                        Pengumuman Sekolah <span class="text-xs font-normal text-gray-500 bg-gray-100 px-2 py-1 rounded">Terbaru</span>
+                    </h3>
+                    <div id="announcement-list" class="space-y-4"></div>
+                </div>
+            </div>
+
+            <!-- PLAYER WRAPPER -->
+            <div id="view-iframe-wrapper" class="hidden w-full h-full bg-white flex flex-col md:flex-row relative">
+                <div id="video-container" class="relative flex-1 bg-black h-[50vh] md:h-full transition-all duration-300">
+                    <iframe id="main-iframe" class="w-full h-full" src="" allowfullscreen></iframe>
+                    <button id="playlist-toggle-btn" onclick="togglePlaylist()" class="hidden absolute top-4 right-4 z-20 bg-black/70 hover:bg-blue-600 text-white px-3 py-2 rounded-md shadow-lg border border-white/20 backdrop-blur-sm transition-all text-xs flex items-center gap-2 group">
+                        <i id="playlist-toggle-icon" class="fa-solid fa-list"></i>
+                        <span class="hidden group-hover:inline font-medium">Daftar Materi</span>
+                    </button>
+                    <div id="iframe-error" class="hidden absolute inset-0 flex flex-col items-center justify-center bg-gray-50 p-6 text-center">
+                        <i class="fa-solid fa-face-frown text-6xl text-gray-300 mb-4"></i>
+                        <h3 class="text-xl font-bold text-gray-700">Tidak dapat memuat halaman</h3>
+                        <p class="text-sm text-gray-500 mt-2 max-w-md mx-auto">Mungkin website menolak ditampilkan dalam frame atau link rusak.</p>
+                        <a id="external-link" href="#" target="_blank" class="mt-4 bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700">Buka di Tab Baru</a>
+                    </div>
+                </div>
+                <div id="playlist-sidebar" class="hidden w-full md:w-80 h-[50vh] md:h-full bg-white border-l border-gray-200 flex flex-col shadow-xl z-10 transition-all duration-300">
+                    <div class="p-3 border-b border-gray-200 bg-gray-50 flex justify-between items-center">
+                        <h3 class="font-bold text-gray-700 text-sm flex items-center"><i class="fa-solid fa-list-ul mr-2 text-blue-600"></i> Materi Pembelajaran</h3>
+                        <div class="flex items-center gap-2"><span id="playlist-counter" class="text-[10px] bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-bold">0/0</span><button onclick="togglePlaylist()" class="text-gray-400 hover:text-red-500 md:hidden"><i class="fa-solid fa-xmark"></i></button></div>
+                    </div>
+                    <div id="playlist-items" class="flex-1 overflow-y-auto playlist-scroll p-0 bg-white"></div>
+                </div>
+            </div>
+
+            <!-- SETTINGS VIEW -->
+            <div id="view-settings" class="hidden h-full overflow-y-auto p-4 lg:p-6 bg-gray-50 custom-scrollbar">
+                <div class="max-w-7xl mx-auto pb-10">
+                    <!-- Tab Navigation -->
+                    <div class="flex border-b border-gray-200 mb-6 bg-white rounded-t-xl px-2 pt-2 shadow-sm overflow-x-auto">
+                        <button onclick="switchSettingsTab('lms')" id="tab-btn-lms" class="tab-btn active px-6 py-3 mr-2 focus:outline-none rounded-t-lg whitespace-nowrap"><i class="fa-solid fa-graduation-cap mr-2"></i> Manajemen LMS</button>
+                        <button onclick="switchSettingsTab('menu')" id="tab-btn-menu" class="tab-btn px-6 py-3 mr-2 focus:outline-none rounded-t-lg whitespace-nowrap"><i class="fa-solid fa-list-check mr-2"></i> Menu Dasar</button>
+                        <button onclick="switchSettingsTab('announcement')" id="tab-btn-announcement" class="tab-btn px-6 py-3 mr-2 focus:outline-none rounded-t-lg whitespace-nowrap"><i class="fa-solid fa-bullhorn mr-2"></i> Pengumuman</button>
+                        <!-- NEW TAB BUTTON -->
+                        <button onclick="switchSettingsTab('app')" id="tab-btn-app" class="tab-btn px-6 py-3 mr-2 focus:outline-none rounded-t-lg whitespace-nowrap"><i class="fa-solid fa-shield-halved mr-2"></i> Identitas & Keamanan</button>
+                    </div>
+
+                     <!-- TAB LMS CONTENT -->
+                     <div id="tab-content-lms" class="space-y-6 animate-fade-in">
+                        <div class="bg-white rounded-xl shadow-md p-6 border border-gray-200">
+                            <div class="flex justify-between items-center mb-4 border-b pb-4">
+                                <div><h3 class="text-lg font-bold text-gray-800">Tambah Materi Pembelajaran</h3><p class="text-sm text-gray-500">Materi otomatis tampil di Dashboard Siswa.</p></div>
+                                <button onclick="resetLMSForm()" class="text-sm text-gray-500 hover:text-blue-600 flex items-center bg-gray-100 px-3 py-1 rounded-md transition-colors"><i class="fa-solid fa-rotate-left mr-2"></i> Reset Form</button>
+                            </div>
+                            <form onsubmit="saveLMS(event)" class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                <input type="hidden" id="lms-edit-id">
+                                <div class="col-span-1"><label class="block text-sm font-semibold text-gray-700 mb-1.5">Mata Pelajaran <span class="text-red-500">*</span></label><div class="relative"><i class="fa-solid fa-book absolute left-3 top-3.5 text-gray-400"></i><input type="text" id="lms-subject" list="subject-suggestions" class="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 outline-none transition-shadow" placeholder="Cth: Matematika" required><datalist id="subject-suggestions"><option value="Matematika"><option value="Bahasa Indonesia"><option value="Bahasa Inggris"><option value="IPA / Sains"><option value="Produktif TJKT"></datalist></div></div>
+                                <div class="col-span-1"><label class="block text-sm font-semibold text-gray-700 mb-1.5">Judul Materi / Topik <span class="text-red-500">*</span></label><input type="text" id="lms-topic" class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 outline-none transition-shadow" placeholder="Cth: Aljabar Linear" required></div>
+                                <div class="md:col-span-2"><label class="block text-sm font-semibold text-gray-700 mb-1.5">Link Sumber Belajar <span class="text-red-500">*</span></label><div class="relative"><i class="fa-solid fa-link absolute left-3 top-3.5 text-gray-400"></i><input type="text" id="lms-url" class="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 outline-none transition-shadow" placeholder="URL Youtube, PDF..." required></div></div>
+                                <div><label class="block text-sm font-semibold text-gray-700 mb-1.5">Tipe Materi</label><select id="lms-type" class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 outline-none bg-white"><option value="video">Video Pembelajaran</option><option value="ebook">E-Book / PDF</option><option value="exam">Ujian Online</option><option value="zoom">Meeting / Zoom</option></select></div>
+                                <div><label class="block text-sm font-semibold text-gray-700 mb-1.5">Nama Guru</label><input type="text" id="lms-teacher" class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Cth: Bpk. Budi"></div>
+                                <div class="md:col-span-2 border rounded-lg p-4 bg-gray-50"><div class="flex items-center justify-between cursor-pointer" onclick="document.getElementById('lms-advanced').classList.toggle('hidden');"><span class="text-sm font-bold text-gray-700"><i class="fa-solid fa-clock mr-2"></i> Penjadwalan & Warna</span><i class="fa-solid fa-chevron-down text-gray-400"></i></div><div id="lms-advanced" class="hidden mt-4 grid grid-cols-1 md:grid-cols-2 gap-4"><div><label class="block text-xs font-medium text-gray-600 mb-1">Jam Buka</label><input type="time" id="lms-auto-open" class="w-full px-3 py-2 rounded border border-gray-300 text-sm"></div><div><label class="block text-xs font-medium text-gray-600 mb-1">Jam Tutup</label><input type="time" id="lms-auto-close" class="w-full px-3 py-2 rounded border border-gray-300 text-sm"></div><div><label class="block text-xs font-medium text-gray-600 mb-1">Status</label><select id="lms-status" class="w-full px-3 py-2 rounded border border-gray-300 text-sm"><option value="active">Terbit (Aktif)</option><option value="inactive">Draf</option></select></div><div><label class="block text-xs font-medium text-gray-600 mb-1">Warna</label><select id="lms-color" class="w-full px-3 py-2 rounded border border-gray-300 text-sm"><option value="auto">Otomatis</option><option value="blue">Biru</option><option value="green">Hijau</option><option value="purple">Ungu</option><option value="orange">Oranye</option><option value="red">Merah</option></select></div></div></div>
+                                <div class="md:col-span-2 mt-2"><button type="submit" id="btn-save-lms" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg transition-all shadow-lg flex items-center justify-center"><i class="fa-solid fa-plus-circle mr-2 text-lg"></i> Simpan Materi ke Database</button></div>
+                            </form>
+                        </div>
+                        <div class="bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden">
+                            <div class="px-6 py-4 border-b border-gray-200 bg-gray-50 flex justify-between items-center"><h3 class="font-bold text-gray-700"><i class="fa-solid fa-list-check mr-2 text-blue-500"></i> Daftar Materi Terbit</h3><div class="flex gap-2"><input type="text" id="lms-search" onkeyup="renderLMSList()" placeholder="Cari..." class="text-xs px-3 py-1.5 border rounded-full hidden md:block"><button onclick="fetchFromDatabase(false)" class="text-xs text-blue-500 bg-blue-50 px-3 py-1.5 rounded-full font-medium"><i class="fa-solid fa-rotate mr-1"></i> Refresh</button></div></div>
+                            <div id="settings-lms-list" class="divide-y divide-gray-100 max-h-[600px] overflow-y-auto custom-scrollbar bg-slate-50"></div>
+                        </div>
+                    </div>
+
+                    <!-- TAB MENU CONTENT -->
+                    <div id="tab-content-menu" class="hidden space-y-6">
+                        <div class="bg-white rounded-xl shadow-md p-6 border border-gray-200">
+                            <div class="flex justify-between items-center mb-4"><h3 class="text-lg font-bold text-gray-800">Editor Menu Dasar</h3><button onclick="resetMenuForm()" class="text-sm text-gray-500 hover:text-blue-600"><i class="fa-solid fa-rotate-left mr-1"></i> Reset</button></div>
+                            <form onsubmit="saveMenu(event)" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <input type="hidden" id="menu-edit-id">
+                                <div class="col-span-1"><label class="block text-sm font-medium text-gray-700 mb-1">Nama Menu</label><input type="text" id="menu-title" class="w-full px-4 py-2 rounded-lg border border-gray-300 outline-none" placeholder="Cth: Video Pembelajaran" required></div>
+                                <div class="col-span-1"><label class="block text-sm font-medium text-gray-700 mb-1">Link URL</label><input type="text" id="menu-url" class="w-full px-4 py-2 rounded-lg border border-gray-300 outline-none" placeholder="https://..." required></div>
+                                <div><label class="block text-sm font-medium text-gray-700 mb-1">Ikon</label><select id="menu-icon" class="w-full px-4 py-2 rounded-lg border border-gray-300 outline-none"><option value="fa-desktop">Desktop</option><option value="fa-book-open">Buku</option><option value="fa-pen-to-square">Tulis</option><option value="fa-video">Video</option><option value="fa-file-pdf">Dokumen</option><option value="fa-globe">Bola Dunia</option></select></div>
+                                <div><label class="block text-sm font-medium text-gray-700 mb-1">Warna</label><select id="menu-color" class="w-full px-4 py-2 rounded-lg border border-gray-300 outline-none"><option value="blue">Biru</option><option value="green">Hijau</option><option value="purple">Ungu</option><option value="orange">Oranye</option><option value="red">Merah</option></select></div>
+                                <div class="md:col-span-2"><label class="block text-sm font-medium text-gray-700 mb-1">Status</label><select id="menu-status" class="w-full px-4 py-2 rounded-lg border border-gray-300 outline-none"><option value="active">Aktif</option><option value="inactive">Non-Aktif</option></select></div>
+                                <div class="md:col-span-1"><label class="block text-sm font-medium text-gray-700 mb-1">Buka</label><input type="time" id="menu-auto-open" class="w-full px-4 py-2 rounded-lg border border-gray-300 outline-none"></div>
+                                <div class="md:col-span-1"><label class="block text-sm font-medium text-gray-700 mb-1">Tutup</label><input type="time" id="menu-auto-close" class="w-full px-4 py-2 rounded-lg border border-gray-300 outline-none"></div>
+                                <div class="md:col-span-2"><button type="submit" id="btn-save-menu" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors shadow"><i class="fa-solid fa-plus mr-2"></i> Simpan ke Database</button></div>
+                            </form>
+                        </div>
+                        <div class="bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden">
+                            <div class="px-6 py-4 border-b border-gray-200 bg-gray-50 flex justify-between items-center"><h3 class="font-bold text-gray-700">Daftar Menu Aktif</h3><button onclick="fetchFromDatabase(false)" class="text-xs text-blue-500 hover:text-blue-700 underline"><i class="fa-solid fa-rotate mr-1"></i>Refresh Data</button></div>
+                            <div id="settings-menu-list" class="divide-y divide-gray-100 max-h-[500px] overflow-y-auto custom-scrollbar"></div>
+                        </div>
+                    </div>
+
+                    <!-- TAB ANNOUNCEMENT CONTENT -->
+                    <div id="tab-content-announcement" class="hidden space-y-6">
+                        <div class="bg-white rounded-xl shadow-md p-6 border border-gray-200">
+                            <h3 class="text-lg font-bold text-gray-800 mb-4">Buat Pengumuman Baru</h3>
+                            <form onsubmit="saveAnnouncement(event)" class="space-y-4">
+                                <input type="hidden" id="ann-edit-id">
+                                <div><label class="block text-sm font-medium text-gray-700 mb-1">Judul</label><input type="text" id="ann-title" class="w-full px-4 py-2 rounded-lg border border-gray-300 outline-none" required></div>
+                                <div><label class="block text-sm font-medium text-gray-700 mb-1">Isi Pesan</label><textarea id="ann-content" rows="3" class="w-full px-4 py-2 rounded-lg border border-gray-300 outline-none" required></textarea></div>
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div><label class="block text-sm font-medium text-gray-700 mb-1">Tipe</label><select id="ann-type" class="w-full px-4 py-2 rounded-lg border border-gray-300 outline-none"><option value="info">Info Umum</option><option value="warning">Peringatan</option><option value="urgent">Penting</option></select></div>
+                                    <div><label class="block text-sm font-medium text-gray-700 mb-1">Waktu</label><input type="text" id="ann-time" class="w-full px-4 py-2 rounded-lg border border-gray-300 outline-none" placeholder="Cth: 1 Jam yang lalu"></div>
+                                </div>
+                                <button type="submit" id="btn-save-ann" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors shadow"><i class="fa-solid fa-paper-plane mr-2"></i> Terbitkan ke Database</button>
+                            </form>
+                        </div>
+                        <div class="bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden">
+                            <div class="px-6 py-4 border-b border-gray-200 bg-gray-50"><h3 class="font-bold text-gray-700">Arsip Pengumuman</h3></div>
+                            <div id="settings-ann-list" class="divide-y divide-gray-100 max-h-[400px] overflow-y-auto custom-scrollbar"></div>
+                        </div>
+                    </div>
+
+                    <!-- NEW TAB: APP IDENTITY CONTENT -->
+                    <div id="tab-content-app" class="hidden space-y-6">
+                         <div class="bg-white rounded-xl shadow-md p-6 border border-gray-200">
+                             <h3 class="text-lg font-bold text-gray-800 mb-4 flex items-center"><i class="fa-solid fa-school mr-2 text-blue-600"></i> Identitas Sekolah & Aplikasi</h3>
+                             <form onsubmit="saveAppSettings(event)" class="space-y-5">
+                                 
+                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                    <div>
+                                        <label class="block text-sm font-bold text-gray-700 mb-2">Nama Aplikasi</label>
+                                        <input type="text" id="set-app-name" class="w-full px-4 py-3 rounded-lg border border-gray-300 outline-none focus:ring-2 focus:ring-blue-500" placeholder="Cth: NusanCBT">
+                                        <p class="text-xs text-gray-400 mt-1">Tampil di Sidebar dan Judul Halaman.</p>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-bold text-gray-700 mb-2">Sub-Judul / Kelas</label>
+                                        <input type="text" id="set-app-subtitle" class="w-full px-4 py-3 rounded-lg border border-gray-300 outline-none focus:ring-2 focus:ring-blue-500" placeholder="Cth: Dashboard Siswa">
+                                    </div>
+                                 </div>
+
+                                 <div>
+                                     <label class="block text-sm font-bold text-gray-700 mb-2">Running Text (Marquee)</label>
+                                     <textarea id="set-running-text" rows="2" class="w-full px-4 py-3 rounded-lg border border-gray-300 outline-none focus:ring-2 focus:ring-blue-500" placeholder="Pesan berjalan di atas dashboard..."></textarea>
+                                 </div>
+
+                                 <div class="border-t pt-5">
+                                     <h4 class="text-md font-bold text-red-600 mb-3"><i class="fa-solid fa-lock mr-2"></i> Keamanan Admin</h4>
+                                     <div class="bg-red-50 p-4 rounded-lg border border-red-100">
+                                         <label class="block text-sm font-bold text-gray-700 mb-2">Password Admin Baru</label>
+                                         <div class="flex gap-2">
+                                             <input type="text" id="set-admin-password" class="w-full px-4 py-3 rounded-lg border border-gray-300 outline-none focus:ring-2 focus:ring-red-500 font-bold tracking-widest" placeholder="Masukkan password baru...">
+                                             <button type="button" onclick="document.getElementById('set-admin-password').value = Math.floor(100000 + Math.random() * 900000)" class="whitespace-nowrap px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 font-medium">Acak PIN</button>
+                                         </div>
+                                         <p class="text-xs text-red-500 mt-2 font-semibold">PERHATIAN: Jika lupa password, Anda harus mengubahnya manual via kolom 'admin_password' di Google Sheet.</p>
+                                     </div>
+                                 </div>
+
+                                 <div class="pt-2">
+                                     <button type="submit" class="w-full bg-slate-800 hover:bg-slate-900 text-white font-bold py-3 px-6 rounded-lg transition-all shadow-lg flex items-center justify-center">
+                                         <i class="fa-solid fa-floppy-disk mr-2"></i> Simpan Pengaturan
+                                     </button>
+                                 </div>
+                             </form>
+                         </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // =============================================================
+        // KONFIGURASI: GANTI URL DI BAWAH INI
+        // =============================================================
+        const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxCcA7pBjcSlN712xXry_IJKhZ241E8dWwr56EMuOlg5OhgcizaiaZ2MbFRXgr_TMX6/exec';
+        // =============================================================
+
+        // --- STATE MANAGEMENT ---
+        let announcements = [];
+        let menus = [];
+        let appSettings = {}; // Menyimpan setting dari DB
+        let lastFetchedData = ""; 
+        let playlistUrls = []; 
+        let activeVideoIndex = 0; 
+
+        // --- COLOR MAPS ---
+        const gradients = { blue: 'from-blue-500 to-blue-600', green: 'from-emerald-500 to-emerald-600', purple: 'from-purple-500 to-purple-600', orange: 'from-orange-500 to-orange-600', red: 'from-red-500 to-red-600' };
+        const textColors = { blue: 'text-blue-100', green: 'text-emerald-100', purple: 'text-purple-100', orange: 'text-orange-100', red: 'text-red-100' };
+
+        // --- DOM Elements ---
+        const mainIframe = document.getElementById('main-iframe');
+        const playlistSidebar = document.getElementById('playlist-sidebar');
+        const playlistItems = document.getElementById('playlist-items');
+        const playlistCounter = document.getElementById('playlist-counter');
+        const playlistToggleBtn = document.getElementById('playlist-toggle-btn');
+        const playlistToggleIcon = document.getElementById('playlist-toggle-icon');
+        const loader = document.getElementById('loader');
+        const pageTitle = document.getElementById('page-title');
+        const sidebarMenuContainer = document.getElementById('sidebar-dynamic-menu');
+        const homeCardsContainer = document.getElementById('home-cards-container');
+        const externalLink = document.getElementById('external-link');
+        const iframeError = document.getElementById('iframe-error');
+        const appLoading = document.getElementById('app-loading');
+        const curfewBanner = document.getElementById('curfew-banner');
+
+        // --- INITIALIZATION ---
+        init();
+
+        async function init() {
+            updateClock();
+            if (GOOGLE_SCRIPT_URL.includes('GANTI_DENGAN')) {
+                appLoading.innerHTML = '<div class="text-center p-4"><h3 class="text-xl font-bold text-red-600">Error Konfigurasi</h3><p>Anda belum memasukkan URL Google Script di dalam kode HTML.</p></div>';
+                return;
+            }
+            await fetchFromDatabase(false); 
+            setInterval(() => fetchFromDatabase(true), 5000); 
+            setInterval(refreshUI, 60000); 
+        }
+
+        // --- DATABASE FETCHING (TERMASUK PASSWORD) ---
+        async function fetchFromDatabase(isBackground = false) {
+            try {
+                const response = await fetch(GOOGLE_SCRIPT_URL + '?action=read&t=' + new Date().getTime());
+                const data = await response.json();
+                
+                if (data.status === 'success') {
+                    const currentDataString = JSON.stringify(data);
+                    if (currentDataString !== lastFetchedData) {
+                        menus = data.menus;
+                        announcements = data.announcements;
+                        
+                        // Update Settings (Password & Identitas)
+                        appSettings = data.settings || {}; 
+                        
+                        lastFetchedData = currentDataString;
+                        
+                        applyGlobalSettings(); // Terapkan nama aplikasi & running text
+                        refreshUI();
+                        console.log("Data updated from server.");
+                    }
+                    if (!isBackground) appLoading.classList.add('hidden');
+                }
+            } catch (error) {
+                console.error("Error fetching data:", error);
+                if (!isBackground) {
+                    Swal.fire("Gagal Terhubung", "Tidak dapat mengambil data dari database.", "error");
+                    appLoading.classList.add('hidden');
+                }
+            }
+        }
+
+        async function sendToDatabase(action, payload) {
+            Swal.fire({ title: 'Menyimpan...', text: 'Sinkronisasi dengan Server', allowOutsideClick: false, didOpen: () => { Swal.showLoading() } });
+            try {
+                const response = await fetch(GOOGLE_SCRIPT_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ action: action, ...payload })
+                });
+                const data = await response.json();
+                if (data.status === 'success') {
+                    // Update state lokal langsung setelah simpan sukses
+                    menus = data.menus;
+                    announcements = data.announcements;
+                    appSettings = data.settings || {};
+                    lastFetchedData = JSON.stringify(data);
+                    
+                    applyGlobalSettings();
+                    refreshUI();
+                    Swal.fire("Berhasil", "Data berhasil disimpan!", "success");
+                }
+            } catch (error) {
+                console.error("Error saving data:", error);
+                Swal.fire("Error", "Gagal menyimpan data.", "error");
+            }
+        }
+
+        // --- APPLY GLOBAL SETTINGS (NAMA & PASSWORD) ---
+        function applyGlobalSettings() {
+            // Update UI Nama Aplikasi
+            if(appSettings.app_name) {
+                document.getElementById('sidebar-app-name').textContent = appSettings.app_name;
+                document.title = appSettings.app_name;
+            }
+            if(appSettings.app_subtitle) {
+                document.getElementById('sidebar-app-subtitle').textContent = appSettings.app_subtitle;
+            }
+            
+            // Handle Marquee
+            const marqueeContainer = document.getElementById('marquee-container');
+            const marqueeText = document.getElementById('marquee-text');
+            if(appSettings.running_text && appSettings.running_text.trim() !== "") {
+                marqueeContainer.classList.remove('hidden');
+                marqueeText.textContent = appSettings.running_text;
+            } else {
+                marqueeContainer.classList.add('hidden');
+            }
+
+            // Isi Form Pengaturan dengan Data Database
+            document.getElementById('set-app-name').value = appSettings.app_name || '';
+            document.getElementById('set-app-subtitle').value = appSettings.app_subtitle || '';
+            document.getElementById('set-running-text').value = appSettings.running_text || '';
+            // Jangan tampilkan password di form jika kosong, biar aman
+            document.getElementById('set-admin-password').value = appSettings.admin_password || '';
+        }
+
+        function saveAppSettings(e) {
+            e.preventDefault();
+            const newData = {
+                app_name: document.getElementById('set-app-name').value,
+                app_subtitle: document.getElementById('set-app-subtitle').value,
+                running_text: document.getElementById('set-running-text').value,
+                admin_password: document.getElementById('set-admin-password').value
+            };
+            sendToDatabase('saveSettings', { data: newData });
+        }
+
+        // --- VERIFIKASI PASSWORD (DARI DATABASE) ---
+        function verifyPassword(e) { 
+            e.preventDefault(); 
+            const inputPass = document.getElementById('admin-password').value;
+            
+            // Cek apakah settings sudah terload dari DB
+            if (!appSettings || Object.keys(appSettings).length === 0) {
+                 Swal.fire('Data Belum Siap', 'Sedang mengambil data dari server. Tunggu sebentar...', 'warning');
+                 return;
+            }
+
+            // Gunakan password dari DB, fallback ke '112233' jika kosong
+            const validPass = appSettings.admin_password ? String(appSettings.admin_password) : '112233';
+            
+            if (inputPass === validPass) { 
+                closePasswordModal(); 
+                executeSwitch('settings'); 
+            } else { 
+                Swal.fire({ icon: 'error', title: 'Akses Ditolak', text: 'Password Salah.' }); 
+            } 
+        }
+
+        // --- FUNGSI STANDAR LAINNYA ---
+        function refreshUI() {
+            renderSidebar();
+            renderHome();
+            renderMenuSettingsList();
+            renderAnnouncementSettingsList();
+            renderLMSList();
+        }
+
+        function getMenuTimeStatus(menu) {
+            const manualStatus = menu.status ? menu.status.toString().toLowerCase() : 'active';
+            if (manualStatus === 'inactive') return { code: 'manual_inactive', label: 'Non-Aktif (Manual)', color: 'gray', isActive: false };
+
+            const now = new Date();
+            const currentTotalMinutes = (now.getHours() * 60) + now.getMinutes();
+            const timeToMinutes = (timeStr) => {
+                if (!timeStr || typeof timeStr !== 'string' || !timeStr.includes(':')) return null;
+                const [h, m] = timeStr.split(':').map(Number);
+                return (h * 60) + m;
+            };
+
+            if (menu.auto_open && menu.auto_open !== "") {
+                const openMins = timeToMinutes(menu.auto_open);
+                if (openMins !== null && currentTotalMinutes < openMins) return { code: 'not_open_yet', label: `Belum Buka (${menu.auto_open})`, color: 'yellow', isActive: false };
+            }
+
+            if (menu.auto_close && menu.auto_close !== "") {
+                const closeMins = timeToMinutes(menu.auto_close);
+                if (closeMins !== null && currentTotalMinutes >= closeMins) return { code: 'closed', label: `Tutup (${menu.auto_close})`, color: 'red', isActive: false };
+            }
+            return { code: 'active', label: 'Aktif', color: 'green', isActive: true };
+        }
+
+        function getYoutubeEmbedUrl(url) {
+            const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+            const match = url.match(regExp);
+            return (match && match[2].length === 11) ? 'https://www.youtube.com/embed/' + match[2] + '?autoplay=1&rel=0' : url;
+        }
+
+        function getYoutubeThumbnail(url) {
+            const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+            const match = url.match(regExp);
+            return (match && match[2].length === 11) ? `https://img.youtube.com/vi/${match[2]}/mqdefault.jpg` : 'https://via.placeholder.com/120x90?text=Video';
+        }
+
+        function renderSidebar() {
+            sidebarMenuContainer.innerHTML = '';
+            menus.forEach(menu => {
+                const statusObj = getMenuTimeStatus(menu);
+                if (!statusObj.isActive) return;
+                const btn = document.createElement('button');
+                btn.id = `btn-${menu.id}`;
+                btn.className = 'nav-item w-full flex items-center gap-3 px-3 py-3 rounded-lg hover:bg-slate-800 transition-colors';
+                btn.onclick = () => switchView(menu.id);
+                btn.innerHTML = `<i class="fa-solid ${menu.icon} w-5 text-center text-slate-400 transition-colors"></i><span class="text-sm font-medium text-left truncate">${menu.title}</span>`;
+                sidebarMenuContainer.appendChild(btn);
+            });
+        }
+
+        function renderHome() {
+            homeCardsContainer.innerHTML = '';
+            let timeRestrictedCount = 0;
+            menus.forEach(menu => {
+                const statusObj = getMenuTimeStatus(menu);
+                if (!statusObj.isActive) {
+                    if (statusObj.code === 'not_open_yet' || statusObj.code === 'closed') timeRestrictedCount++;
+                    return; 
+                }
+                const gradient = gradients[menu.color] || gradients.blue;
+                const textColor = textColors[menu.color] || textColors.blue;
+                let displayTitle = menu.title, displaySubtitle = "Menu Utama", tag = "";
+                if(menu.title.includes(":")) {
+                    const parts = menu.title.split(":");
+                    if(parts.length >= 2) { displaySubtitle = parts[0].trim(); displayTitle = parts.slice(1).join(":").trim(); tag = `<span class="ml-2 text-[10px] bg-white/20 px-1.5 py-0.5 rounded text-white opacity-80">${displaySubtitle}</span>`; }
+                }
+                const card = document.createElement('div');
+                card.className = `bg-gradient-to-br ${gradient} rounded-xl p-6 text-white shadow-lg cursor-pointer transform hover:scale-105 transition-transform flex flex-col h-full`;
+                card.onclick = () => switchView(menu.id);
+                card.innerHTML = `<div class="flex justify-between items-start mb-4"><div class="bg-white/20 p-3 rounded-lg flex-shrink-0 backdrop-blur-sm"><i class="fa-solid ${menu.icon} text-2xl"></i></div>${tag ? `<div class="bg-black/10 px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider">${displaySubtitle}</div>` : ''}</div><div class="mt-auto"><p class="${textColor} text-xs font-bold uppercase tracking-wider mb-1 opacity-80">${!tag ? displaySubtitle : 'Materi Pembelajaran'}</p><h3 class="text-lg font-bold leading-tight line-clamp-2">${displayTitle}</h3></div><div class="mt-4 flex items-center text-xs opacity-75"><span><i class="fa-solid fa-arrow-right mr-1"></i> Buka Materi</span></div>`;
+                homeCardsContainer.appendChild(card);
+            });
+            curfewBanner.classList.toggle('hidden', timeRestrictedCount === 0);
+            
+            const annList = document.getElementById('announcement-list');
+            annList.innerHTML = '';
+            if(announcements.length === 0) annList.innerHTML = '<div class="text-center text-gray-500 py-4">Belum ada pengumuman.</div>';
+            announcements.forEach(item => {
+                let colorClass = 'bg-blue-100 text-blue-600', icon = 'fa-bullhorn';
+                if (item.type === 'warning') { colorClass = 'bg-orange-100 text-orange-600'; icon = 'fa-triangle-exclamation'; }
+                if (item.type === 'urgent') { colorClass = 'bg-red-100 text-red-600'; icon = 'fa-circle-exclamation'; }
+                const div = document.createElement('div');
+                div.className = 'flex gap-4 items-start p-2 rounded-lg hover:bg-gray-50 transition-colors';
+                div.innerHTML = `<div class="w-12 h-12 rounded-full ${colorClass} flex items-center justify-center flex-shrink-0"><i class="fa-solid ${icon}"></i></div><div><h4 class="font-semibold text-gray-800">${item.title}</h4><p class="text-sm text-gray-600 mt-1">${item.content}</p><span class="text-xs text-gray-400 mt-2 block"><i class="fa-regular fa-clock mr-1"></i> ${item.time}</span></div>`;
+                annList.appendChild(div);
+            });
+        }
+
+        function switchView(viewId) {
+            if (viewId === 'settings') { document.getElementById('password-modal').classList.remove('hidden'); document.getElementById('admin-password').value = ''; return; }
+            executeSwitch(viewId);
+        }
+
+        function executeSwitch(viewId) {
+            document.querySelectorAll('.nav-item').forEach(el => { el.classList.remove('active', 'bg-blue-600', 'text-white'); el.classList.add('hover:bg-slate-800'); el.querySelector('i').classList.add('text-slate-400'); });
+            const activeBtn = document.getElementById(`btn-${viewId}`);
+            if(activeBtn) { activeBtn.classList.add('active'); activeBtn.classList.remove('hover:bg-slate-800'); activeBtn.querySelector('i').classList.remove('text-slate-400'); }
+            if(window.innerWidth < 1024) { document.getElementById('sidebar').classList.add('-translate-x-full'); document.getElementById('mobile-overlay').classList.add('hidden'); }
+            ['view-home', 'view-iframe-wrapper', 'view-settings'].forEach(id => document.getElementById(id).classList.add('hidden'));
+            mainIframe.src = ''; playlistSidebar.classList.add('hidden'); playlistToggleBtn.classList.add('hidden');
+
+            if (viewId === 'home') { pageTitle.textContent = 'Dashboard Utama'; document.getElementById('view-home').classList.remove('hidden'); refreshUI(); }
+            else if (viewId === 'settings') { pageTitle.textContent = 'Pengaturan Admin'; document.getElementById('view-settings').classList.remove('hidden'); switchSettingsTab('lms'); refreshUI(); }
+            else {
+                const menuItem = menus.find(m => m.id === viewId);
+                if (menuItem) {
+                    let cleanTitle = menuItem.title;
+                    if(menuItem.title.includes(':')) cleanTitle = menuItem.title.split(':')[1].trim();
+                    pageTitle.textContent = cleanTitle; 
+                    document.getElementById('view-iframe-wrapper').classList.remove('hidden'); 
+                    loader.style.display = 'block'; iframeError.classList.add('hidden');
+                    const rawUrl = menuItem.url || "";
+                    playlistUrls = rawUrl.split(',').map(u => u.trim()).filter(u => u !== "");
+                    if (playlistUrls.length > 1) { initPlaylist(playlistUrls); } 
+                    else {
+                        let finalUrl = playlistUrls[0] || "";
+                        if (finalUrl.includes('youtube.com') || finalUrl.includes('youtu.be')) finalUrl = getYoutubeEmbedUrl(finalUrl);
+                        externalLink.href = finalUrl; mainIframe.src = finalUrl; 
+                        mainIframe.onload = () => loader.style.display = 'none'; 
+                        mainIframe.onerror = () => { loader.style.display = 'none'; iframeError.classList.remove('hidden'); };
+                    }
+                }
+            }
+        }
+
+        function togglePlaylist() {
+            const sidebar = document.getElementById('playlist-sidebar');
+            const icon = document.getElementById('playlist-toggle-icon');
+            if (sidebar.classList.contains('hidden')) { sidebar.classList.remove('hidden'); icon.classList.remove('fa-expand'); icon.classList.add('fa-list'); } 
+            else { sidebar.classList.add('hidden'); icon.classList.remove('fa-list'); icon.classList.add('fa-expand'); }
+        }
+
+        function initPlaylist(urls) {
+            playlistSidebar.classList.remove('hidden'); playlistToggleBtn.classList.remove('hidden');
+            const icon = document.getElementById('playlist-toggle-icon'); icon.classList.remove('fa-expand'); icon.classList.add('fa-list');
+            playlistItems.innerHTML = ''; activeVideoIndex = 0; playlistCounter.textContent = `1/${urls.length}`;
+            urls.forEach((url, index) => {
+                let thumbnail = 'https://via.placeholder.com/120x90?text=Video';
+                if (url.includes('youtube.com') || url.includes('youtu.be')) thumbnail = getYoutubeThumbnail(url);
+                const item = document.createElement('div');
+                item.className = `playlist-item cursor-pointer p-3 flex gap-3 items-center border-b border-gray-100 ${index === 0 ? 'active' : ''}`;
+                item.onclick = () => loadPlaylistVideo(index);
+                item.innerHTML = `<div class="relative w-24 h-16 bg-gray-200 rounded overflow-hidden flex-shrink-0 group"><img src="${thumbnail}" class="w-full h-full object-cover transition-transform group-hover:scale-110"><div class="absolute inset-0 bg-black/20 group-hover:bg-black/10 flex items-center justify-center transition-colors icon-play opacity-0 group-hover:opacity-100"><i class="fa-solid fa-play text-white drop-shadow-md text-sm"></i></div></div><div class="flex-1 min-w-0"><p class="text-sm text-gray-700 truncate title">Materi Bagian ${index + 1}</p><p class="text-[10px] text-gray-400 mt-1 uppercase tracking-wide">Video Pembelajaran</p></div>`;
+                playlistItems.appendChild(item);
+            });
+            loadPlaylistVideo(0); 
+        }
+
+        function loadPlaylistVideo(index) {
+            activeVideoIndex = index;
+            let url = playlistUrls[index];
+            document.querySelectorAll('.playlist-item').forEach((btn, idx) => { if (idx === index) btn.classList.add('active'); else btn.classList.remove('active'); });
+            playlistCounter.textContent = `${index + 1}/${playlistUrls.length}`;
+            if (window.innerWidth < 768) togglePlaylist(); 
+            loader.style.display = 'block';
+            if (url.includes('youtube.com') || url.includes('youtu.be')) url = getYoutubeEmbedUrl(url);
+            mainIframe.src = url; externalLink.href = playlistUrls[index]; 
+            mainIframe.onload = () => loader.style.display = 'none';
+            mainIframe.onerror = () => { loader.style.display = 'none'; iframeError.classList.remove('hidden'); };
+        }
+
+        function closePasswordModal() { document.getElementById('password-modal').classList.add('hidden'); }
+        
+        function switchSettingsTab(tabName) { 
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active')); 
+            document.getElementById(`tab-btn-${tabName}`).classList.add('active'); 
+            ['tab-content-menu', 'tab-content-announcement', 'tab-content-lms', 'tab-content-app'].forEach(id => document.getElementById(id).classList.add('hidden'));
+            document.getElementById(`tab-content-${tabName}`).classList.remove('hidden'); 
+        }
+
+        function toggleSidebar() { document.getElementById('sidebar').classList.toggle('-translate-x-full'); document.getElementById('mobile-overlay').classList.toggle('hidden'); }
+        function toggleFullscreen() { if (!document.fullscreenElement) document.documentElement.requestFullscreen(); else if (document.exitFullscreen) document.exitFullscreen(); }
+        function updateClock() { const now = new Date(); document.getElementById('digital-clock').textContent = now.toLocaleTimeString('id-ID', { hour12: false }); document.getElementById('current-date').textContent = now.toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'short', day: 'numeric' }); }
+        setInterval(updateClock, 1000);
+
+        function saveMenu(e) {
+            e.preventDefault();
+            const titleInput = document.getElementById('menu-title');
+            const urlInput = document.getElementById('menu-url');
+            const urlValue = urlInput.value.trim();
+            if (!titleInput.value.trim() || !urlValue) { Swal.fire({ icon: 'warning', title: 'Data Belum Lengkap', text: 'Nama Menu dan URL wajib diisi!', confirmButtonColor: '#3085d6' }); return; }
+            const data = {
+                id: document.getElementById('menu-edit-id').value || 'menu_' + Date.now(),
+                title: titleInput.value.trim(),
+                url: urlValue, 
+                icon: document.getElementById('menu-icon').value,
+                color: document.getElementById('menu-color').value,
+                status: document.getElementById('menu-status').value,
+                auto_close: document.getElementById('menu-auto-close').value, 
+                auto_open: document.getElementById('menu-auto-open').value 
+            };
+            sendToDatabase('saveMenu', { data: data });
+            resetMenuForm();
+        }
+
+        function saveLMS(e) {
+            e.preventDefault();
+            const subject = document.getElementById('lms-subject').value.trim();
+            const topic = document.getElementById('lms-topic').value.trim();
+            const urlValue = document.getElementById('lms-url').value.trim();
+            if (!subject || !topic || !urlValue) { Swal.fire({ icon: 'warning', title: 'Data Kurang', text: 'Lengkapi form!', confirmButtonColor: '#3085d6' }); return; }
+            const combinedTitle = `${subject}: ${topic}`;
+            let iconClass = 'fa-book';
+            if (document.getElementById('lms-type').value === 'video') iconClass = 'fa-video';
+            if (document.getElementById('lms-type').value === 'exam') iconClass = 'fa-pen-to-square';
+            let colorVal = document.getElementById('lms-color').value;
+            if (colorVal === 'auto') { const colors = ['blue', 'green', 'purple', 'orange', 'red']; colorVal = colors[subject.length % colors.length]; }
+            const data = {
+                id: document.getElementById('lms-edit-id').value || 'lms_' + Date.now(),
+                title: combinedTitle, url: urlValue, icon: iconClass, color: colorVal,
+                status: document.getElementById('lms-status').value,
+                auto_close: document.getElementById('lms-auto-close').value,
+                auto_open: document.getElementById('lms-auto-open').value,
+            };
+            sendToDatabase('saveMenu', { data: data });
+            resetLMSForm();
+        }
+
+        function deleteMenu(id) { Swal.fire({ title: 'Hapus?', icon: 'warning', showCancelButton: true, confirmButtonColor: '#d33' }).then((r) => { if (r.isConfirmed) sendToDatabase('deleteMenu', { id: id }); }); }
+        function saveAnnouncement(e) { e.preventDefault(); const data = { id: document.getElementById('ann-edit-id').value || Date.now(), title: document.getElementById('ann-title').value, content: document.getElementById('ann-content').value, type: document.getElementById('ann-type').value, time: document.getElementById('ann-time').value || 'Baru saja' }; sendToDatabase('saveAnnouncement', { data: data }); document.getElementById('ann-edit-id').value = ''; document.getElementById('ann-title').value = ''; document.getElementById('ann-content').value = ''; }
+        function deleteAnnouncement(id) { Swal.fire({ title: 'Hapus?', icon: 'warning', showCancelButton: true }).then((r) => { if(r.isConfirmed) sendToDatabase('deleteAnnouncement', { id: id }); }); }
+
+        function renderLMSList() {
+            const list = document.getElementById('settings-lms-list'); const search = document.getElementById('lms-search').value.toLowerCase(); list.innerHTML = '';
+            const lmsItems = menus.filter(m => m.title.includes(':') || m.id.startsWith('lms_'));
+            if(lmsItems.length === 0) { list.innerHTML = '<div class="p-8 text-center text-gray-400"><p>Belum ada materi.</p></div>'; return; }
+            lmsItems.forEach(menu => {
+                if (search && !menu.title.toLowerCase().includes(search)) return;
+                const parts = menu.title.includes(':') ? menu.title.split(':') : ['Umum', menu.title];
+                const statusObj = getMenuTimeStatus(menu);
+                let statusColor = statusObj.isActive ? 'text-green-600 bg-green-50' : 'text-gray-500 bg-gray-100';
+                list.innerHTML += `<div class="p-4 flex justify-between items-center hover:bg-white transition-colors gap-3"><div class="flex items-start gap-3 w-full"><div class="w-10 h-10 rounded-lg bg-${menu.color}-100 flex items-center justify-center text-${menu.color}-600 flex-shrink-0 mt-1"><i class="fa-solid ${menu.icon}"></i></div><div class="min-w-0"><div class="flex items-center gap-2 mb-0.5"><span class="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-gray-200 text-gray-600">${parts[0].trim()}</span><span class="text-[10px] px-1.5 py-0.5 rounded ${statusColor}">${statusObj.label}</span></div><h4 class="font-bold text-gray-800 text-sm truncate">${parts.slice(1).join(':').trim()}</h4><p class="text-xs text-gray-400 truncate max-w-[200px]">${menu.url}</p></div></div><div class="flex gap-2"><button onclick="editLMS('${menu.id}')" class="px-3 py-1.5 bg-yellow-50 text-yellow-700 rounded-lg text-xs font-medium border border-yellow-200">Edit</button><button onclick="deleteMenu('${menu.id}')" class="px-3 py-1.5 bg-red-50 text-red-700 rounded-lg text-xs font-medium border border-red-200">Hapus</button></div></div>`;
+            });
+        }
+
+        function renderMenuSettingsList() {
+            const list = document.getElementById('settings-menu-list'); list.innerHTML = '';
+            const basicMenus = menus.filter(m => !m.title.includes(':') && !m.id.startsWith('lms_'));
+            basicMenus.forEach(menu => {
+                const statusObj = getMenuTimeStatus(menu);
+                let statusBadge = statusObj.isActive ? '<span class="px-2 py-1 text-xs rounded-full bg-green-100 text-green-700 font-bold">Aktif</span>' : '<span class="px-2 py-1 text-xs rounded-full bg-gray-200 text-gray-600">Non-Aktif</span>';
+                list.innerHTML += `<div class="p-4 flex justify-between items-center hover:bg-gray-50 gap-4"><div class="flex items-center gap-4 w-full"><div class="w-10 h-10 rounded bg-gray-100 flex items-center justify-center text-gray-600 flex-shrink-0"><i class="fa-solid ${menu.icon}"></i></div><div class="min-w-0"><h4 class="font-bold text-gray-800 truncate">${menu.title}</h4>${statusBadge}</div></div><div class="flex gap-2 shrink-0"><button onclick="editMenu('${menu.id}')" class="px-3 py-1.5 bg-yellow-100 text-yellow-700 rounded text-sm font-medium">Edit</button><button onclick="deleteMenu('${menu.id}')" class="px-3 py-1.5 bg-red-100 text-red-700 rounded text-sm font-medium">Hapus</button></div></div>`;
+            });
+        }
+        function renderAnnouncementSettingsList() {
+            const list = document.getElementById('settings-ann-list'); list.innerHTML = '';
+            announcements.forEach(item => { list.innerHTML += `<div class="p-4 flex justify-between items-center hover:bg-gray-50"><div class="mb-2 md:mb-0 w-full"><div class="flex items-center gap-2 mb-1"><span class="px-2 py-0.5 rounded text-xs font-bold uppercase bg-gray-200 text-gray-700">${item.type}</span><h4 class="font-bold text-gray-800">${item.title}</h4></div><p class="text-sm text-gray-600 truncate max-w-xs">${item.content}</p></div><div class="flex gap-2"><button onclick="editAnnouncement(${item.id})" class="text-yellow-600 p-2"><i class="fa-solid fa-pen"></i></button><button onclick="deleteAnnouncement(${item.id})" class="text-red-600 p-2"><i class="fa-solid fa-trash"></i></button></div></div>`; });
+        }
+
+        function editMenu(id) {
+            const item = menus.find(m => m.id === id);
+            if(item) { switchSettingsTab('menu'); document.getElementById('menu-edit-id').value = item.id; document.getElementById('menu-title').value = item.title; document.getElementById('menu-url').value = item.url; document.getElementById('menu-icon').value = item.icon; document.getElementById('menu-color').value = item.color; document.getElementById('menu-status').value = item.status; document.getElementById('menu-auto-close').value = item.auto_close; document.getElementById('menu-auto-open').value = item.auto_open; document.getElementById('btn-save-menu').innerHTML = 'Update Menu'; }
+        }
+        
+        function editLMS(id) {
+            const item = menus.find(m => m.id === id);
+            if(item) {
+                switchSettingsTab('lms'); document.getElementById('lms-edit-id').value = item.id;
+                let mapel = "Umum", topic = item.title;
+                if(item.title.includes(":")) { const parts = item.title.split(":"); mapel = parts[0].trim(); topic = parts.slice(1).join(":").trim(); }
+                document.getElementById('lms-subject').value = mapel; document.getElementById('lms-topic').value = topic; document.getElementById('lms-url').value = item.url;
+                document.getElementById('lms-status').value = item.status; document.getElementById('lms-auto-close').value = item.auto_close; document.getElementById('lms-auto-open').value = item.auto_open;
+                document.getElementById('btn-save-lms').innerHTML = 'Update Materi';
+            }
+        }
+        function editAnnouncement(id) { const item = announcements.find(a => a.id == id); if(item) { document.getElementById('ann-edit-id').value = item.id; document.getElementById('ann-title').value = item.title; document.getElementById('ann-content').value = item.content; document.getElementById('ann-type').value = item.type; document.getElementById('ann-time').value = item.time; document.getElementById('btn-save-ann').innerHTML = 'Update Pengumuman'; } }
+        function resetMenuForm() { document.getElementById('menu-edit-id').value = ''; document.getElementById('menu-title').value = ''; document.getElementById('menu-url').value = ''; document.getElementById('menu-status').value = 'active'; document.getElementById('menu-auto-close').value = ''; document.getElementById('menu-auto-open').value = ''; document.getElementById('btn-save-menu').innerHTML = '<i class="fa-solid fa-plus mr-2"></i> Simpan ke Database'; }
+        function resetLMSForm() { document.getElementById('lms-edit-id').value = ''; document.getElementById('lms-subject').value = ''; document.getElementById('lms-topic').value = ''; document.getElementById('lms-url').value = ''; document.getElementById('lms-status').value = 'active'; document.getElementById('lms-auto-close').value = ''; document.getElementById('lms-auto-open').value = ''; document.getElementById('btn-save-lms').innerHTML = '<i class="fa-solid fa-plus-circle mr-2 text-lg"></i> Simpan Materi ke Database'; }
+    </script>
+</body>
+</html>
