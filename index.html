@@ -12,43 +12,29 @@
     <style>
         body { font-family: 'Inter', sans-serif; }
         .sidebar-transition { transition: transform 0.3s ease-in-out; }
-        
-        /* Scrollbar Styling */
         .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
-        
         .playlist-scroll::-webkit-scrollbar { width: 6px; }
         .playlist-scroll::-webkit-scrollbar-track { background: #f1f5f9; }
         .playlist-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
         .playlist-scroll::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
-        
-        /* Layout & Components */
         .iframe-container { position: relative; width: 100%; height: 100%; overflow: hidden; background-color: white; }
         iframe { width: 100%; height: 100%; border: none; }
         .nav-item.active { background-color: #2563eb; color: white; }
         .nav-item.active i { color: white; }
-        
-        /* Loader */
         .loader { border: 4px solid #f3f3f3; border-top: 4px solid #3498db; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); display: none; z-index: 10; }
         @keyframes spin { 0% { transform: translate(-50%, -50%) rotate(0deg); } 100% { transform: translate(-50%, -50%) rotate(360deg); } }
-        
         .modal-overlay { background-color: rgba(0, 0, 0, 0.5); backdrop-filter: blur(2px); }
-        
-        /* Tabs */
         .tab-btn.active { border-bottom: 2px solid #2563eb; color: #2563eb; font-weight: 600; background-color: #eff6ff; }
         .tab-btn { color: #6b7280; font-weight: 500; transition: all 0.2s; }
         .tab-btn:hover { background-color: #f9fafb; }
-        
-        /* Playlist */
         .playlist-item { transition: all 0.2s; border-left: 3px solid transparent; }
         .playlist-item:hover { background-color: #f8fafc; }
         .playlist-item.active { background-color: #eff6ff; border-left-color: #2563eb; }
         .playlist-item.active .title { color: #1d4ed8; font-weight: 600; }
         .playlist-item.active .icon-play { opacity: 1; }
-
-        /* Animation */
         .animate-fade-in { animation: fadeIn 0.3s ease-in-out; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
@@ -64,7 +50,7 @@
     <!-- Mobile Overlay -->
     <div id="mobile-overlay" onclick="toggleSidebar()" class="fixed inset-0 bg-black opacity-50 z-20 hidden lg:hidden"></div>
 
-    <!-- Password Modal (Universal) -->
+    <!-- Password Modal -->
     <div id="password-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center modal-overlay">
         <div class="bg-white rounded-xl shadow-2xl p-6 w-full max-w-sm mx-4 animate-fade-in">
             <div class="text-center mb-6">
@@ -105,7 +91,7 @@
         </div>
     </div>
 
-    <!-- PDF Viewer Modal (LMS) -->
+    <!-- PDF Viewer Modal -->
     <div id="pdf-viewer-modal" class="hidden fixed inset-0 z-50 overflow-hidden">
         <div class="absolute inset-0 bg-slate-900 bg-opacity-90 backdrop-blur-sm" onclick="closePreview()"></div>
         <div class="absolute inset-4 md:inset-10 flex flex-col bg-white rounded-xl shadow-2xl overflow-hidden animate-fade-in">
@@ -148,7 +134,7 @@
             <!-- Dynamic Menu Placeholder -->
             <div id="sidebar-dynamic-menu"></div>
             
-            <!-- NEW LMS MENU ITEM -->
+            <!-- LMS MENU ITEM (Hidden by default based on settings) -->
             <button onclick="switchView('lms')" id="btn-lms" class="nav-item w-full flex items-center gap-3 px-3 py-3 rounded-lg hover:bg-slate-800 transition-colors">
                 <i class="fa-solid fa-book-open w-5 text-center text-slate-400 transition-colors"></i>
                 <span class="text-sm font-medium">E-Library (LMS)</span>
@@ -217,7 +203,7 @@
                 </div>
             </div>
 
-            <!-- 2. PLAYER WRAPPER (VIDEO/EXAM) -->
+            <!-- 2. PLAYER WRAPPER -->
             <div id="view-iframe-wrapper" class="hidden w-full h-full bg-white flex flex-col md:flex-row relative">
                 <div id="video-container" class="relative flex-1 bg-black h-[50vh] md:h-full transition-all duration-300">
                     <iframe id="main-iframe" class="w-full h-full" src="" allowfullscreen></iframe>
@@ -226,7 +212,7 @@
                         <span class="hidden group-hover:inline font-medium">Daftar Materi</span>
                     </button>
                     
-                    <!-- Tampilan 404 / Error -->
+                    <!-- 404 Error -->
                     <div id="iframe-error" class="hidden absolute inset-0 flex flex-col items-center justify-center bg-white p-8 text-center z-10">
                         <div class="w-24 h-24 bg-red-100 rounded-full flex items-center justify-center mb-6 animate-fade-in">
                             <i id="error-icon" class="fa-solid fa-link-slash text-4xl text-red-500"></i>
@@ -254,32 +240,24 @@
                 </div>
             </div>
 
-            <!-- 3. NEW LMS VIEW (Integrated) - ONLY STUDENT VIEW NOW -->
+            <!-- 3. NEW LMS VIEW (Student View) -->
             <div id="view-lms" class="hidden h-full overflow-y-auto p-4 lg:p-6 bg-slate-50 custom-scrollbar animate-fade-in">
                 <div class="max-w-7xl mx-auto pb-10">
-                    <!-- LMS Navigation Header -->
                     <div class="flex justify-between items-center mb-6 bg-white p-4 rounded-xl shadow-sm border border-gray-200">
                         <div>
                             <h2 class="text-2xl font-bold text-slate-800">📚 Perpustakaan Digital</h2>
                             <p class="text-slate-500 text-sm">Akses materi PDF dan E-Book sekolah.</p>
                         </div>
-                        <!-- Admin buttons removed from here -->
                     </div>
 
-                    <!-- LMS: Student View (Default) -->
                     <div id="lms-view-student" class="space-y-6">
-                        <!-- Filter Dinamis -->
                         <div id="lms-filter-container" class="flex flex-wrap gap-2 mb-4">
                             <button onclick="filterLMSMateri('Semua')" class="filter-btn px-4 py-1.5 rounded-full text-xs font-medium bg-blue-100 text-blue-700 border border-blue-200">Semua</button>
-                            <!-- Kategori kelas dinamis di-inject via JS -->
                         </div>
-                        
                         <div id="lms-loading" class="hidden text-center py-10">
                             <div class="animate-spin inline-block w-8 h-8 border-[3px] border-current border-t-transparent text-blue-600 rounded-full" role="status" aria-label="loading"></div>
                             <p class="mt-2 text-slate-500 text-sm">Sedang memuat materi dari Google Drive...</p>
                         </div>
-
-                        <!-- File Grid -->
                         <div id="lms-file-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
                             <!-- Populated by JS -->
                         </div>
@@ -290,13 +268,9 @@
             <!-- 4. SETTINGS VIEW -->
             <div id="view-settings" class="hidden h-full overflow-y-auto p-4 lg:p-6 bg-gray-50 custom-scrollbar">
                 <div class="max-w-7xl mx-auto pb-10">
-                    <!-- Tab Navigation -->
                     <div class="flex border-b border-gray-200 mb-6 bg-white rounded-t-xl px-2 pt-2 shadow-sm overflow-x-auto">
                         <button onclick="switchSettingsTab('lms')" id="tab-btn-lms" class="tab-btn active px-6 py-3 mr-2 focus:outline-none rounded-t-lg whitespace-nowrap"><i class="fa-solid fa-graduation-cap mr-2"></i> Manajemen Dashboard</button>
-                        
-                        <!-- NEW ADMIN TAB -->
                         <button onclick="switchSettingsTab('lms-admin')" id="tab-btn-lms-admin" class="tab-btn px-6 py-3 mr-2 focus:outline-none rounded-t-lg whitespace-nowrap text-blue-600"><i class="fa-solid fa-book mr-2"></i> E-Library (Guru)</button>
-                        
                         <button onclick="switchSettingsTab('menu')" id="tab-btn-menu" class="tab-btn px-6 py-3 mr-2 focus:outline-none rounded-t-lg whitespace-nowrap"><i class="fa-solid fa-list-check mr-2"></i> Menu Dasar</button>
                         <button onclick="switchSettingsTab('announcement')" id="tab-btn-announcement" class="tab-btn px-6 py-3 mr-2 focus:outline-none rounded-t-lg whitespace-nowrap"><i class="fa-solid fa-bullhorn mr-2"></i> Pengumuman</button>
                         <button onclick="switchSettingsTab('app')" id="tab-btn-app" class="tab-btn px-6 py-3 mr-2 focus:outline-none rounded-t-lg whitespace-nowrap"><i class="fa-solid fa-shield-halved mr-2"></i> Identitas & Keamanan</button>
@@ -326,11 +300,25 @@
                         </div>
                     </div>
 
-                    <!-- NEW TAB CONTENT: E-LIBRARY ADMIN (Moved from View LMS) -->
+                    <!-- E-LIBRARY ADMIN (Dengan Panel Pengaturan Status Baru di Atas) -->
                     <div id="tab-content-lms-admin" class="hidden space-y-6">
+                        
+                        <!-- Panel Baru: Konfigurasi Fitur LMS -->
+                        <div class="bg-white p-6 rounded-xl shadow-md border border-slate-200 mb-6">
+                            <h3 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2"><i class="fa-solid fa-toggle-on text-blue-600"></i> Konfigurasi Fitur</h3>
+                            <div class="flex flex-col md:flex-row gap-4 items-end">
+                                <div class="flex-1 w-full">
+                                    <label class="block text-sm font-bold text-gray-700 mb-2">Status E-Library (LMS)</label>
+                                    <select id="set-lms-status" onchange="saveAppSettings(event)" class="w-full px-4 py-2 rounded-lg border border-gray-300 outline-none focus:ring-2 focus:ring-blue-500">
+                                        <option value="active">Aktif (Tampil di Dashboard & Sidebar)</option>
+                                        <option value="inactive">Non-Aktif (Sembunyikan)</option>
+                                    </select>
+                                    <p class="text-xs text-gray-400 mt-1">Perubahan disimpan otomatis.</p>
+                                </div>
+                            </div>
+                        </div>
+
                         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                            
-                            <!-- Panel 1: Upload Materi -->
                             <div class="bg-white p-6 rounded-xl shadow-md border border-slate-200">
                                 <h3 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2"><i class="fa-solid fa-cloud-arrow-up text-blue-600"></i> Upload Materi</h3>
                                 <form id="lms-upload-form" onsubmit="handleLMSUpload(event)">
@@ -338,7 +326,6 @@
                                         <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Kelas Tujuan</label>
                                         <select id="lms-upload-class" class="w-full px-3 py-2 bg-slate-50 border rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none">
                                             <option value="" disabled selected>-- Pilih Kelas --</option>
-                                            <!-- Dinamis dari JS -->
                                         </select>
                                     </div>
                                     <div class="mb-4">
@@ -348,8 +335,6 @@
                                     <button type="submit" class="w-full bg-blue-600 text-white py-2 rounded-lg font-bold hover:bg-blue-700 transition-colors text-sm shadow-lg">Mulai Upload</button>
                                 </form>
                             </div>
-
-                            <!-- Panel 2: Manajemen Kelas (CRUD) -->
                             <div class="bg-white p-6 rounded-xl shadow-md border border-slate-200">
                                 <h3 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2"><i class="fa-solid fa-chalkboard-user text-green-600"></i> Manajemen Kelas</h3>
                                 <form onsubmit="handleSaveClass(event)" class="flex gap-2 mb-4">
@@ -361,14 +346,10 @@
                                         <thead class="bg-slate-50 border-b">
                                             <tr><th class="px-4 py-2 text-xs text-slate-500">Nama Kelas</th><th class="px-4 py-2 text-right text-xs text-slate-500">Aksi</th></tr>
                                         </thead>
-                                        <tbody id="class-list-body" class="divide-y divide-gray-100">
-                                            <!-- List Kelas JS -->
-                                        </tbody>
+                                        <tbody id="class-list-body" class="divide-y divide-gray-100"></tbody>
                                     </table>
                                 </div>
                             </div>
-
-                            <!-- Panel 3: List Manage File (Rename & Delete) -->
                             <div class="bg-white p-6 rounded-xl shadow-md border border-slate-200 lg:col-span-3">
                                 <h3 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2"><i class="fa-solid fa-list-check text-purple-600"></i> Kelola File</h3>
                                 <div class="overflow-x-auto max-h-[400px] overflow-y-auto custom-scrollbar">
@@ -380,9 +361,7 @@
                                                 <th class="px-4 py-3 text-right">Aksi</th>
                                             </tr>
                                         </thead>
-                                        <tbody id="lms-admin-table-body" class="divide-y divide-gray-100">
-                                            <!-- Populated JS -->
-                                        </tbody>
+                                        <tbody id="lms-admin-table-body" class="divide-y divide-gray-100"></tbody>
                                     </table>
                                 </div>
                             </div>
@@ -442,13 +421,14 @@
                                     <div>
                                         <label class="block text-sm font-bold text-gray-700 mb-2">Nama Aplikasi</label>
                                         <input type="text" id="set-app-name" class="w-full px-4 py-3 rounded-lg border border-gray-300 outline-none focus:ring-2 focus:ring-blue-500" placeholder="Cth: NusanCBT">
-                                        <p class="text-xs text-gray-400 mt-1">Tampil di Sidebar dan Judul Halaman.</p>
                                     </div>
                                     <div>
                                         <label class="block text-sm font-bold text-gray-700 mb-2">Sub-Judul / Kelas</label>
                                         <input type="text" id="set-app-subtitle" class="w-full px-4 py-3 rounded-lg border border-gray-300 outline-none focus:ring-2 focus:ring-blue-500" placeholder="Cth: Dashboard Siswa">
                                     </div>
                                  </div>
+
+                                 <!-- LMS Setting Removed from here -->
 
                                  <div>
                                      <label class="block text-sm font-bold text-gray-700 mb-2">Running Text (Marquee)</label>
@@ -463,7 +443,6 @@
                                              <input type="text" id="set-admin-password" class="w-full px-4 py-3 rounded-lg border border-gray-300 outline-none focus:ring-2 focus:ring-red-500 font-bold tracking-widest" placeholder="Masukkan password baru...">
                                              <button type="button" onclick="document.getElementById('set-admin-password').value = Math.floor(100000 + Math.random() * 900000)" class="whitespace-nowrap px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 font-medium">Acak PIN</button>
                                          </div>
-                                         <p class="text-xs text-red-500 mt-2 font-semibold">PERHATIAN: Password ini digunakan untuk masuk ke Menu Pengaturan dan Panel Guru LMS.</p>
                                      </div>
                                  </div>
 
@@ -485,7 +464,7 @@
         // =============================================================
         // KONFIGURASI: GANTI URL DI BAWAH INI
         // =============================================================
-        const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw2L9L66eTh2PkaGExnxz4ZcwC-KUOY68ww8w-VKsNfsPhq0hVSdT5AuFriiBHilXFa/exec';
+        const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby1AbNqh4-1FWfDT6YKkRCF5vvXfOQPnjQImvSvGX7Axr_GXxmGLA8pUokuEJVjtJ_u/exec';
         // =============================================================
 
         // --- STATE MANAGEMENT ---
@@ -722,10 +701,19 @@
                 marqueeContainer.classList.add('hidden');
             }
 
+            // LMS Feature Visibility in Sidebar
+            const lmsSidebarBtn = document.getElementById('btn-lms');
+            if(appSettings.lms_feature_status === 'inactive') {
+                lmsSidebarBtn.classList.add('hidden');
+            } else {
+                lmsSidebarBtn.classList.remove('hidden');
+            }
+
             document.getElementById('set-app-name').value = appSettings.app_name || '';
             document.getElementById('set-app-subtitle').value = appSettings.app_subtitle || '';
             document.getElementById('set-running-text').value = appSettings.running_text || '';
             document.getElementById('set-admin-password').value = appSettings.admin_password || '';
+            document.getElementById('set-lms-status').value = appSettings.lms_feature_status || 'active';
         }
 
         function saveAppSettings(e) {
@@ -734,7 +722,8 @@
                 app_name: document.getElementById('set-app-name').value,
                 app_subtitle: document.getElementById('set-app-subtitle').value,
                 running_text: document.getElementById('set-running-text').value,
-                admin_password: document.getElementById('set-admin-password').value
+                admin_password: document.getElementById('set-admin-password').value,
+                lms_feature_status: document.getElementById('set-lms-status').value
             };
             sendToDatabase('saveSettings', { data: newData });
         }
@@ -749,7 +738,6 @@
             
             if (inputPass === validPass) { 
                 closePasswordModal(); 
-                // Jika password benar, masuk ke settings (otomatis akses admin lms juga terbuka)
                 executeSwitch('settings'); 
             } else { 
                 Swal.fire({ icon: 'error', title: 'Akses Ditolak', text: 'Password Salah.' }); 
@@ -1103,6 +1091,31 @@
 
         function renderHome() {
             homeCardsContainer.innerHTML = '';
+            
+            // 1. Render LMS Card jika setting active (Ditaruh paling awal)
+            if (appSettings.lms_feature_status !== 'inactive') {
+                const lmsCard = document.createElement('div');
+                // Menggunakan warna khusus (Indigo) agar terlihat seperti fitur premium/spesial
+                lmsCard.className = `bg-gradient-to-br from-indigo-600 to-blue-700 rounded-xl p-6 text-white shadow-lg cursor-pointer transform hover:scale-105 transition-transform flex flex-col h-full border border-indigo-500`;
+                lmsCard.onclick = () => switchView('lms');
+                lmsCard.innerHTML = `
+                    <div class="flex justify-between items-start mb-4">
+                        <div class="bg-white/20 p-3 rounded-lg flex-shrink-0 backdrop-blur-sm">
+                            <i class="fa-solid fa-book-open text-2xl"></i>
+                        </div>
+                        <div class="bg-black/20 px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider">Perpustakaan</div>
+                    </div>
+                    <div class="mt-auto">
+                        <p class="text-indigo-100 text-xs font-bold uppercase tracking-wider mb-1 opacity-80">E-Library</p>
+                        <h3 class="text-lg font-bold leading-tight line-clamp-2">Akses Materi & E-Book</h3>
+                    </div>
+                    <div class="mt-4 flex items-center text-xs opacity-75">
+                        <span><i class="fa-solid fa-arrow-right mr-1"></i> Buka Pustaka</span>
+                    </div>`;
+                homeCardsContainer.appendChild(lmsCard);
+            }
+
+            // 2. Render Menu Dinamis Lainnya
             let timeRestrictedCount = 0;
             menus.forEach(menu => {
                 const statusObj = getMenuTimeStatus(menu);
