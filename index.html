@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Siswa Terintegrasi</title>
+    <title>Dashboard Siswa & LMS Terintegrasi</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -12,52 +12,70 @@
     <style>
         body { font-family: 'Inter', sans-serif; }
         .sidebar-transition { transition: transform 0.3s ease-in-out; }
+        
+        /* Scrollbar Styling */
         .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        
         .playlist-scroll::-webkit-scrollbar { width: 6px; }
         .playlist-scroll::-webkit-scrollbar-track { background: #f1f5f9; }
         .playlist-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
         .playlist-scroll::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        
+        /* Layout & Components */
         .iframe-container { position: relative; width: 100%; height: 100%; overflow: hidden; background-color: white; }
         iframe { width: 100%; height: 100%; border: none; }
         .nav-item.active { background-color: #2563eb; color: white; }
         .nav-item.active i { color: white; }
+        
+        /* Loader */
         .loader { border: 4px solid #f3f3f3; border-top: 4px solid #3498db; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); display: none; z-index: 10; }
         @keyframes spin { 0% { transform: translate(-50%, -50%) rotate(0deg); } 100% { transform: translate(-50%, -50%) rotate(360deg); } }
+        
         .modal-overlay { background-color: rgba(0, 0, 0, 0.5); backdrop-filter: blur(2px); }
+        
+        /* Tabs */
         .tab-btn.active { border-bottom: 2px solid #2563eb; color: #2563eb; font-weight: 600; background-color: #eff6ff; }
         .tab-btn { color: #6b7280; font-weight: 500; transition: all 0.2s; }
         .tab-btn:hover { background-color: #f9fafb; }
+        
+        /* Playlist */
         .playlist-item { transition: all 0.2s; border-left: 3px solid transparent; }
         .playlist-item:hover { background-color: #f8fafc; }
         .playlist-item.active { background-color: #eff6ff; border-left-color: #2563eb; }
         .playlist-item.active .title { color: #1d4ed8; font-weight: 600; }
         .playlist-item.active .icon-play { opacity: 1; }
+
+        /* Animation */
+        .animate-fade-in { animation: fadeIn 0.3s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body class="bg-gray-100 h-screen overflow-hidden flex text-gray-800">
 
+    <!-- Loading Screen -->
     <div id="app-loading" class="fixed inset-0 z-[60] bg-white flex flex-col items-center justify-center">
         <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-blue-600 mb-4"></div>
-        <p class="text-gray-600 font-medium">Memuat Aplikasi...</p>
-       
+        <p class="text-gray-600 font-medium">Memuat Aplikasi Terintegrasi...</p>
     </div>
 
+    <!-- Mobile Overlay -->
     <div id="mobile-overlay" onclick="toggleSidebar()" class="fixed inset-0 bg-black opacity-50 z-20 hidden lg:hidden"></div>
 
-    <!-- Password Modal -->
+    <!-- Password Modal (Universal) -->
     <div id="password-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center modal-overlay">
-        <div class="bg-white rounded-xl shadow-2xl p-6 w-full max-w-sm mx-4">
+        <div class="bg-white rounded-xl shadow-2xl p-6 w-full max-w-sm mx-4 animate-fade-in">
             <div class="text-center mb-6">
                 <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4 text-blue-600">
                     <i class="fa-solid fa-lock text-2xl"></i>
                 </div>
-                <h3 class="text-xl font-bold text-gray-800">Akses Admin</h3>
-                <p class="text-sm text-gray-500 mt-1">Masukkan password untuk masuk.</p>
+                <h3 class="text-xl font-bold text-gray-800">Akses Terbatas</h3>
+                <p class="text-sm text-gray-500 mt-1">Masukkan password admin/guru.</p>
             </div>
             <form onsubmit="verifyPassword(event)">
+                <input type="hidden" id="auth-target" value="settings">
                 <div class="mb-4">
                     <input type="password" id="admin-password" class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 outline-none text-center tracking-widest text-lg" placeholder="••••••" required>
                 </div>
@@ -66,6 +84,38 @@
                     <button type="submit" class="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 shadow-lg shadow-blue-500/30">Masuk</button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <!-- Rename Modal -->
+    <div id="rename-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center modal-overlay">
+        <div class="bg-white rounded-xl shadow-2xl p-6 w-full max-w-sm mx-4 animate-fade-in">
+            <h3 class="text-lg font-bold text-gray-800 mb-4">Ubah Nama File</h3>
+            <form onsubmit="handleRenameFile(event)">
+                <input type="hidden" id="rename-file-id">
+                <div class="mb-4">
+                    <input type="text" id="rename-file-name" class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 outline-none" required>
+                    <p class="text-xs text-gray-500 mt-1">*Ekstensi .pdf akan ditambahkan otomatis</p>
+                </div>
+                <div class="flex gap-3">
+                    <button type="button" onclick="closeRenameModal()" class="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg">Batal</button>
+                    <button type="submit" class="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Simpan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- PDF Viewer Modal (LMS) -->
+    <div id="pdf-viewer-modal" class="hidden fixed inset-0 z-50 overflow-hidden">
+        <div class="absolute inset-0 bg-slate-900 bg-opacity-90 backdrop-blur-sm" onclick="closePreview()"></div>
+        <div class="absolute inset-4 md:inset-10 flex flex-col bg-white rounded-xl shadow-2xl overflow-hidden animate-fade-in">
+            <div class="flex justify-between items-center p-4 border-b bg-gray-50">
+                <h3 id="preview-title" class="font-bold truncate pr-4 text-gray-700">Preview Materi</h3>
+                <button onclick="closePreview()" class="text-red-500 hover:text-red-700 bg-red-100 hover:bg-red-200 rounded-full w-8 h-8 flex items-center justify-center transition-colors">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <iframe id="preview-frame" class="flex-grow w-full h-full bg-slate-100"></iframe>
         </div>
     </div>
 
@@ -84,7 +134,7 @@
                 <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" alt="User Avatar" class="w-10 h-10 rounded-full bg-slate-600 border-2 border-slate-500">
                 <div>
                     <p class="text-sm font-semibold text-white">Siswa Peserta</p>
-                    <p id="sidebar-app-subtitle" class="text-xs text-slate-400">Kelas TJKT</p>
+                    <p id="sidebar-app-subtitle" class="text-xs text-slate-400">Loading...</p>
                 </div>
             </div>
         </div>
@@ -94,7 +144,16 @@
                 <i class="fa-solid fa-house w-5 text-center text-slate-400 transition-colors"></i>
                 <span class="text-sm font-medium">Dashboard</span>
             </button>
+            
+            <!-- Dynamic Menu Placeholder -->
             <div id="sidebar-dynamic-menu"></div>
+            
+            <!-- NEW LMS MENU ITEM -->
+            <button onclick="switchView('lms')" id="btn-lms" class="nav-item w-full flex items-center gap-3 px-3 py-3 rounded-lg hover:bg-slate-800 transition-colors">
+                <i class="fa-solid fa-book-open w-5 text-center text-slate-400 transition-colors"></i>
+                <span class="text-sm font-medium">E-Library (LMS)</span>
+            </button>
+
             <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2 mt-6 px-3">Lainnya</div>
             <button onclick="switchView('settings')" id="btn-settings" class="nav-item w-full flex items-center gap-3 px-3 py-3 rounded-lg hover:bg-slate-800 transition-colors">
                 <i class="fa-solid fa-gear w-5 text-center text-slate-400 transition-colors"></i>
@@ -104,6 +163,7 @@
 
     <!-- Main Content -->
     <main class="flex-1 flex flex-col h-full relative w-full">
+        <!-- Header -->
         <header class="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-4 lg:px-6 shadow-sm z-10">
             <div class="flex items-center gap-3">
                 <button onclick="toggleSidebar()" class="lg:hidden p-2 text-gray-600 hover:bg-gray-100 rounded-md">
@@ -123,7 +183,7 @@
         <!-- RUNNING TEXT / MARQUEE -->
         <div id="marquee-container" class="bg-blue-600 text-white text-sm py-1.5 overflow-hidden whitespace-nowrap hidden">
             <div id="marquee-text" class="inline-block animate-marquee pl-[100%]">
-                Selamat Datang di Aplikasi Ujian Online. Harap menjaga ketertiban.
+                <!-- Text will be injected here -->
             </div>
         </div>
         <style>
@@ -131,10 +191,11 @@
             .animate-marquee { animation: marquee 20s linear infinite; }
         </style>
 
+        <!-- Content Area -->
         <div id="content-area" class="flex-1 p-0 overflow-hidden relative bg-gray-50">
             <div id="loader" class="loader"></div>
 
-            <!-- HOME VIEW -->
+            <!-- 1. HOME VIEW -->
             <div id="view-home" class="h-full overflow-y-auto p-4 lg:p-6 animate-fade-in custom-scrollbar">
                 <div id="curfew-banner" class="hidden mb-6 bg-yellow-50 border-l-4 border-yellow-500 p-4 rounded-r shadow-sm transition-all duration-300">
                     <div class="flex items-center">
@@ -156,7 +217,7 @@
                 </div>
             </div>
 
-            <!-- PLAYER WRAPPER -->
+            <!-- 2. PLAYER WRAPPER (VIDEO/EXAM) -->
             <div id="view-iframe-wrapper" class="hidden w-full h-full bg-white flex flex-col md:flex-row relative">
                 <div id="video-container" class="relative flex-1 bg-black h-[50vh] md:h-full transition-all duration-300">
                     <iframe id="main-iframe" class="w-full h-full" src="" allowfullscreen></iframe>
@@ -164,12 +225,25 @@
                         <i id="playlist-toggle-icon" class="fa-solid fa-list"></i>
                         <span class="hidden group-hover:inline font-medium">Daftar Materi</span>
                     </button>
-                    <div id="iframe-error" class="hidden absolute inset-0 flex flex-col items-center justify-center bg-gray-50 p-6 text-center">
-                        <i class="fa-solid fa-face-frown text-6xl text-gray-300 mb-4"></i>
-                        <h3 class="text-xl font-bold text-gray-700">Tidak dapat memuat halaman</h3>
-                        <p class="text-sm text-gray-500 mt-2 max-w-md mx-auto">Mungkin website menolak ditampilkan dalam frame atau link rusak.</p>
-                        <a id="external-link" href="#" target="_blank" class="mt-4 bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700">Buka di Tab Baru</a>
+                    
+                    <!-- Tampilan 404 / Error -->
+                    <div id="iframe-error" class="hidden absolute inset-0 flex flex-col items-center justify-center bg-white p-8 text-center z-10">
+                        <div class="w-24 h-24 bg-red-100 rounded-full flex items-center justify-center mb-6 animate-fade-in">
+                            <i id="error-icon" class="fa-solid fa-link-slash text-4xl text-red-500"></i>
+                        </div>
+                        <h3 id="error-title" class="text-2xl font-bold text-gray-800 mb-2">Halaman Tidak Ditemukan (404)</h3>
+                        <p id="error-message" class="text-gray-500 mb-8 max-w-md">URL materi atau menu yang Anda tuju tidak valid atau tidak dapat diakses.</p>
+                        
+                        <div class="flex gap-3">
+                            <button onclick="switchView('home')" class="px-6 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg font-medium transition-colors">
+                                <i class="fa-solid fa-arrow-left mr-2"></i> Kembali ke Dashboard
+                            </button>
+                            <a id="external-link" href="#" target="_blank" class="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors shadow-lg shadow-blue-500/30">
+                                <i class="fa-solid fa-external-link-alt mr-2"></i> Buka di Tab Baru
+                            </a>
+                        </div>
                     </div>
+
                 </div>
                 <div id="playlist-sidebar" class="hidden w-full md:w-80 h-[50vh] md:h-full bg-white border-l border-gray-200 flex flex-col shadow-xl z-10 transition-all duration-300">
                     <div class="p-3 border-b border-gray-200 bg-gray-50 flex justify-between items-center">
@@ -180,23 +254,59 @@
                 </div>
             </div>
 
-            <!-- SETTINGS VIEW -->
+            <!-- 3. NEW LMS VIEW (Integrated) - ONLY STUDENT VIEW NOW -->
+            <div id="view-lms" class="hidden h-full overflow-y-auto p-4 lg:p-6 bg-slate-50 custom-scrollbar animate-fade-in">
+                <div class="max-w-7xl mx-auto pb-10">
+                    <!-- LMS Navigation Header -->
+                    <div class="flex justify-between items-center mb-6 bg-white p-4 rounded-xl shadow-sm border border-gray-200">
+                        <div>
+                            <h2 class="text-2xl font-bold text-slate-800">📚 Perpustakaan Digital</h2>
+                            <p class="text-slate-500 text-sm">Akses materi PDF dan E-Book sekolah.</p>
+                        </div>
+                        <!-- Admin buttons removed from here -->
+                    </div>
+
+                    <!-- LMS: Student View (Default) -->
+                    <div id="lms-view-student" class="space-y-6">
+                        <!-- Filter Dinamis -->
+                        <div id="lms-filter-container" class="flex flex-wrap gap-2 mb-4">
+                            <button onclick="filterLMSMateri('Semua')" class="filter-btn px-4 py-1.5 rounded-full text-xs font-medium bg-blue-100 text-blue-700 border border-blue-200">Semua</button>
+                            <!-- Kategori kelas dinamis di-inject via JS -->
+                        </div>
+                        
+                        <div id="lms-loading" class="hidden text-center py-10">
+                            <div class="animate-spin inline-block w-8 h-8 border-[3px] border-current border-t-transparent text-blue-600 rounded-full" role="status" aria-label="loading"></div>
+                            <p class="mt-2 text-slate-500 text-sm">Sedang memuat materi dari Google Drive...</p>
+                        </div>
+
+                        <!-- File Grid -->
+                        <div id="lms-file-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                            <!-- Populated by JS -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 4. SETTINGS VIEW -->
             <div id="view-settings" class="hidden h-full overflow-y-auto p-4 lg:p-6 bg-gray-50 custom-scrollbar">
                 <div class="max-w-7xl mx-auto pb-10">
                     <!-- Tab Navigation -->
                     <div class="flex border-b border-gray-200 mb-6 bg-white rounded-t-xl px-2 pt-2 shadow-sm overflow-x-auto">
-                        <button onclick="switchSettingsTab('lms')" id="tab-btn-lms" class="tab-btn active px-6 py-3 mr-2 focus:outline-none rounded-t-lg whitespace-nowrap"><i class="fa-solid fa-graduation-cap mr-2"></i> Manajemen LMS</button>
+                        <button onclick="switchSettingsTab('lms')" id="tab-btn-lms" class="tab-btn active px-6 py-3 mr-2 focus:outline-none rounded-t-lg whitespace-nowrap"><i class="fa-solid fa-graduation-cap mr-2"></i> Manajemen Dashboard</button>
+                        
+                        <!-- NEW ADMIN TAB -->
+                        <button onclick="switchSettingsTab('lms-admin')" id="tab-btn-lms-admin" class="tab-btn px-6 py-3 mr-2 focus:outline-none rounded-t-lg whitespace-nowrap text-blue-600"><i class="fa-solid fa-book mr-2"></i> E-Library (Guru)</button>
+                        
                         <button onclick="switchSettingsTab('menu')" id="tab-btn-menu" class="tab-btn px-6 py-3 mr-2 focus:outline-none rounded-t-lg whitespace-nowrap"><i class="fa-solid fa-list-check mr-2"></i> Menu Dasar</button>
                         <button onclick="switchSettingsTab('announcement')" id="tab-btn-announcement" class="tab-btn px-6 py-3 mr-2 focus:outline-none rounded-t-lg whitespace-nowrap"><i class="fa-solid fa-bullhorn mr-2"></i> Pengumuman</button>
-                        <!-- NEW TAB BUTTON -->
                         <button onclick="switchSettingsTab('app')" id="tab-btn-app" class="tab-btn px-6 py-3 mr-2 focus:outline-none rounded-t-lg whitespace-nowrap"><i class="fa-solid fa-shield-halved mr-2"></i> Identitas & Keamanan</button>
                     </div>
 
-                     <!-- TAB LMS CONTENT -->
+                     <!-- TAB DASHBOARD LMS CONTENT -->
                      <div id="tab-content-lms" class="space-y-6 animate-fade-in">
                         <div class="bg-white rounded-xl shadow-md p-6 border border-gray-200">
                             <div class="flex justify-between items-center mb-4 border-b pb-4">
-                                <div><h3 class="text-lg font-bold text-gray-800">Tambah Materi Pembelajaran</h3><p class="text-sm text-gray-500">Materi otomatis tampil di Dashboard Siswa.</p></div>
+                                <div><h3 class="text-lg font-bold text-gray-800">Tambah Materi Dashboard</h3><p class="text-sm text-gray-500">Materi ini tampil di Home Dashboard (Video/Link).</p></div>
                                 <button onclick="resetLMSForm()" class="text-sm text-gray-500 hover:text-blue-600 flex items-center bg-gray-100 px-3 py-1 rounded-md transition-colors"><i class="fa-solid fa-rotate-left mr-2"></i> Reset Form</button>
                             </div>
                             <form onsubmit="saveLMS(event)" class="grid grid-cols-1 md:grid-cols-2 gap-5">
@@ -213,6 +323,69 @@
                         <div class="bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden">
                             <div class="px-6 py-4 border-b border-gray-200 bg-gray-50 flex justify-between items-center"><h3 class="font-bold text-gray-700"><i class="fa-solid fa-list-check mr-2 text-blue-500"></i> Daftar Materi Terbit</h3><div class="flex gap-2"><input type="text" id="lms-search" onkeyup="renderLMSList()" placeholder="Cari..." class="text-xs px-3 py-1.5 border rounded-full hidden md:block"><button onclick="fetchFromDatabase(false)" class="text-xs text-blue-500 bg-blue-50 px-3 py-1.5 rounded-full font-medium"><i class="fa-solid fa-rotate mr-1"></i> Refresh</button></div></div>
                             <div id="settings-lms-list" class="divide-y divide-gray-100 max-h-[600px] overflow-y-auto custom-scrollbar bg-slate-50"></div>
+                        </div>
+                    </div>
+
+                    <!-- NEW TAB CONTENT: E-LIBRARY ADMIN (Moved from View LMS) -->
+                    <div id="tab-content-lms-admin" class="hidden space-y-6">
+                        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                            
+                            <!-- Panel 1: Upload Materi -->
+                            <div class="bg-white p-6 rounded-xl shadow-md border border-slate-200">
+                                <h3 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2"><i class="fa-solid fa-cloud-arrow-up text-blue-600"></i> Upload Materi</h3>
+                                <form id="lms-upload-form" onsubmit="handleLMSUpload(event)">
+                                    <div class="mb-4">
+                                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Kelas Tujuan</label>
+                                        <select id="lms-upload-class" class="w-full px-3 py-2 bg-slate-50 border rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                                            <option value="" disabled selected>-- Pilih Kelas --</option>
+                                            <!-- Dinamis dari JS -->
+                                        </select>
+                                    </div>
+                                    <div class="mb-4">
+                                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">File PDF</label>
+                                        <input type="file" id="lms-upload-file" accept="application/pdf" required class="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer border border-slate-300 rounded-lg">
+                                    </div>
+                                    <button type="submit" class="w-full bg-blue-600 text-white py-2 rounded-lg font-bold hover:bg-blue-700 transition-colors text-sm shadow-lg">Mulai Upload</button>
+                                </form>
+                            </div>
+
+                            <!-- Panel 2: Manajemen Kelas (CRUD) -->
+                            <div class="bg-white p-6 rounded-xl shadow-md border border-slate-200">
+                                <h3 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2"><i class="fa-solid fa-chalkboard-user text-green-600"></i> Manajemen Kelas</h3>
+                                <form onsubmit="handleSaveClass(event)" class="flex gap-2 mb-4">
+                                    <input type="text" id="new-class-name" placeholder="Nama Kelas (Cth: X TJKT)" class="flex-1 px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-green-500 outline-none" required>
+                                    <button type="submit" class="bg-green-600 text-white px-3 py-2 rounded-lg hover:bg-green-700"><i class="fa-solid fa-plus"></i></button>
+                                </form>
+                                <div class="overflow-y-auto max-h-[200px] custom-scrollbar border rounded-lg">
+                                    <table class="w-full text-sm text-left">
+                                        <thead class="bg-slate-50 border-b">
+                                            <tr><th class="px-4 py-2 text-xs text-slate-500">Nama Kelas</th><th class="px-4 py-2 text-right text-xs text-slate-500">Aksi</th></tr>
+                                        </thead>
+                                        <tbody id="class-list-body" class="divide-y divide-gray-100">
+                                            <!-- List Kelas JS -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <!-- Panel 3: List Manage File (Rename & Delete) -->
+                            <div class="bg-white p-6 rounded-xl shadow-md border border-slate-200 lg:col-span-3">
+                                <h3 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2"><i class="fa-solid fa-list-check text-purple-600"></i> Kelola File</h3>
+                                <div class="overflow-x-auto max-h-[400px] overflow-y-auto custom-scrollbar">
+                                    <table class="w-full text-sm text-left">
+                                        <thead class="text-xs text-slate-500 uppercase bg-slate-50 border-b sticky top-0 shadow-sm">
+                                            <tr>
+                                                <th class="px-4 py-3">Nama File</th>
+                                                <th class="px-4 py-3">Kelas</th>
+                                                <th class="px-4 py-3 text-right">Aksi</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="lms-admin-table-body" class="divide-y divide-gray-100">
+                                            <!-- Populated JS -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
@@ -259,7 +432,7 @@
                         </div>
                     </div>
 
-                    <!-- NEW TAB: APP IDENTITY CONTENT -->
+                    <!-- TAB: APP IDENTITY CONTENT -->
                     <div id="tab-content-app" class="hidden space-y-6">
                          <div class="bg-white rounded-xl shadow-md p-6 border border-gray-200">
                              <h3 class="text-lg font-bold text-gray-800 mb-4 flex items-center"><i class="fa-solid fa-school mr-2 text-blue-600"></i> Identitas Sekolah & Aplikasi</h3>
@@ -290,7 +463,7 @@
                                              <input type="text" id="set-admin-password" class="w-full px-4 py-3 rounded-lg border border-gray-300 outline-none focus:ring-2 focus:ring-red-500 font-bold tracking-widest" placeholder="Masukkan password baru...">
                                              <button type="button" onclick="document.getElementById('set-admin-password').value = Math.floor(100000 + Math.random() * 900000)" class="whitespace-nowrap px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 font-medium">Acak PIN</button>
                                          </div>
-                                         <p class="text-xs text-red-500 mt-2 font-semibold">PERHATIAN: Jika lupa password, Anda harus mengubahnya manual via kolom 'admin_password' di Google Sheet.</p>
+                                         <p class="text-xs text-red-500 mt-2 font-semibold">PERHATIAN: Password ini digunakan untuk masuk ke Menu Pengaturan dan Panel Guru LMS.</p>
                                      </div>
                                  </div>
 
@@ -312,16 +485,20 @@
         // =============================================================
         // KONFIGURASI: GANTI URL DI BAWAH INI
         // =============================================================
-        const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxCcA7pBjcSlN712xXry_IJKhZ241E8dWwr56EMuOlg5OhgcizaiaZ2MbFRXgr_TMX6/exec';
+        const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw2L9L66eTh2PkaGExnxz4ZcwC-KUOY68ww8w-VKsNfsPhq0hVSdT5AuFriiBHilXFa/exec';
         // =============================================================
 
         // --- STATE MANAGEMENT ---
         let announcements = [];
         let menus = [];
-        let appSettings = {}; // Menyimpan setting dari DB
+        let classes = []; // State untuk daftar kelas
+        let appSettings = {}; 
         let lastFetchedData = ""; 
         let playlistUrls = []; 
         let activeVideoIndex = 0; 
+        
+        // --- LMS DATA ---
+        let lmsLibraryData = []; 
 
         // --- COLOR MAPS ---
         const gradients = { blue: 'from-blue-500 to-blue-600', green: 'from-emerald-500 to-emerald-600', purple: 'from-purple-500 to-purple-600', orange: 'from-orange-500 to-orange-600', red: 'from-red-500 to-red-600' };
@@ -348,84 +525,194 @@
 
         async function init() {
             updateClock();
+            setInterval(updateClock, 1000); // Tambahkan ini agar detik berjalan
             if (GOOGLE_SCRIPT_URL.includes('GANTI_DENGAN')) {
                 appLoading.innerHTML = '<div class="text-center p-4"><h3 class="text-xl font-bold text-red-600">Error Konfigurasi</h3><p>Anda belum memasukkan URL Google Script di dalam kode HTML.</p></div>';
                 return;
             }
+            // Fetch All Data
             await fetchFromDatabase(false); 
-            setInterval(() => fetchFromDatabase(true), 5000); 
-            setInterval(refreshUI, 60000); 
+            fetchLMSLibrary(); // Ambil data file di background
+
+            setInterval(() => fetchFromDatabase(true), 10000); // Sync data sheet tiap 10s
         }
 
-        // --- DATABASE FETCHING (TERMASUK PASSWORD) ---
+        // --- DATABASE FETCHING (SPREADSHEET) ---
         async function fetchFromDatabase(isBackground = false) {
             try {
+                // Gunakan getTime untuk cache busting
                 const response = await fetch(GOOGLE_SCRIPT_URL + '?action=read&t=' + new Date().getTime());
                 const data = await response.json();
                 
                 if (data.status === 'success') {
                     const currentDataString = JSON.stringify(data);
                     if (currentDataString !== lastFetchedData) {
-                        menus = data.menus;
-                        announcements = data.announcements;
-                        
-                        // Update Settings (Password & Identitas)
+                        menus = data.menus || [];
+                        announcements = data.announcements || [];
+                        classes = data.classes || []; // Ambil data kelas
                         appSettings = data.settings || {}; 
                         
                         lastFetchedData = currentDataString;
-                        
-                        applyGlobalSettings(); // Terapkan nama aplikasi & running text
+                        applyGlobalSettings();
                         refreshUI();
-                        console.log("Data updated from server.");
+                        updateClassDropdowns(); // Update UI kelas
                     }
                     if (!isBackground) appLoading.classList.add('hidden');
                 }
             } catch (error) {
                 console.error("Error fetching data:", error);
-                if (!isBackground) {
-                    Swal.fire("Gagal Terhubung", "Tidak dapat mengambil data dari database.", "error");
-                    appLoading.classList.add('hidden');
-                }
+                if (!isBackground) appLoading.classList.add('hidden');
             }
         }
 
+        // --- LMS FETCHING (GOOGLE DRIVE) ---
+        async function fetchLMSLibrary() {
+            const loading = document.getElementById('lms-loading');
+            const grid = document.getElementById('lms-file-grid');
+            
+            if(lmsLibraryData.length === 0) {
+                 loading.classList.remove('hidden');
+                 grid.classList.add('hidden');
+            }
+
+            try {
+                const response = await fetch(GOOGLE_SCRIPT_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ action: 'getLMSLibrary' })
+                });
+                const result = await response.json();
+                
+                loading.classList.add('hidden');
+                grid.classList.remove('hidden');
+
+                if(result.status === 'success') {
+                    lmsLibraryData = result.data;
+                    renderLMSLibrary(lmsLibraryData);
+                    // Jika tab admin terbuka, refresh juga tabel admin
+                    if(!document.getElementById('tab-content-lms-admin').classList.contains('hidden')) {
+                        renderLMSAdminTable();
+                    }
+                }
+            } catch (error) {
+                console.error("Error fetching LMS:", error);
+                loading.classList.add('hidden');
+            }
+        }
+
+        // --- SEND TO DB GENERIC ---
         async function sendToDatabase(action, payload) {
-            Swal.fire({ title: 'Menyimpan...', text: 'Sinkronisasi dengan Server', allowOutsideClick: false, didOpen: () => { Swal.showLoading() } });
+            Swal.fire({ title: 'Memproses...', allowOutsideClick: false, didOpen: () => { Swal.showLoading() } });
             try {
                 const response = await fetch(GOOGLE_SCRIPT_URL, {
                     method: 'POST',
                     body: JSON.stringify({ action: action, ...payload })
                 });
                 const data = await response.json();
+                
                 if (data.status === 'success') {
-                    // Update state lokal langsung setelah simpan sukses
-                    menus = data.menus;
-                    announcements = data.announcements;
-                    appSettings = data.settings || {};
-                    lastFetchedData = JSON.stringify(data);
-                    
-                    applyGlobalSettings();
+                    // Update state lokal
+                    if(data.menus) menus = data.menus;
+                    if(data.announcements) announcements = data.announcements;
+                    if(data.classes) {
+                         classes = data.classes;
+                         updateClassDropdowns();
+                    }
+                    if(data.settings) {
+                        appSettings = data.settings;
+                        applyGlobalSettings(); // Langsung update UI identity
+                    }
+
                     refreshUI();
                     Swal.fire("Berhasil", "Data berhasil disimpan!", "success");
+                    return true;
+                } else {
+                    throw new Error(data.message || "Gagal menyimpan");
                 }
             } catch (error) {
                 console.error("Error saving data:", error);
-                Swal.fire("Error", "Gagal menyimpan data.", "error");
+                Swal.fire("Error", "Gagal: " + error.message, "error");
+                return false;
             }
         }
 
-        // --- APPLY GLOBAL SETTINGS (NAMA & PASSWORD) ---
+        // --- UI UPDATERS (KELAS) ---
+        function updateClassDropdowns() {
+            // 1. Update Dropdown Upload
+            const uploadSelect = document.getElementById('lms-upload-class');
+            uploadSelect.innerHTML = '<option value="" disabled selected>-- Pilih Kelas --</option>';
+            classes.forEach(c => {
+                uploadSelect.innerHTML += `<option value="${c.name}">${c.name}</option>`;
+            });
+
+            // 2. Update Filter Buttons (Student View)
+            const filterContainer = document.getElementById('lms-filter-container');
+            // Simpan tombol "Semua"
+            filterContainer.innerHTML = '<button onclick="filterLMSMateri(\'Semua\')" class="filter-btn px-4 py-1.5 rounded-full text-xs font-medium bg-blue-100 text-blue-700 border border-blue-200">Semua</button>';
+            classes.forEach(c => {
+                filterContainer.innerHTML += `<button onclick="filterLMSMateri('${c.name}')" class="filter-btn px-4 py-1.5 rounded-full text-xs font-medium bg-white text-gray-600 border hover:bg-gray-50">${c.name}</button>`;
+            });
+
+            // 3. Update Table List Kelas (Admin View)
+            const tbody = document.getElementById('class-list-body');
+            tbody.innerHTML = '';
+            classes.forEach(c => {
+                tbody.innerHTML += `
+                    <tr>
+                        <td class="px-4 py-2 text-slate-700 font-medium">${c.name}</td>
+                        <td class="px-4 py-2 text-right">
+                             <button onclick="handleDeleteClass('${c.id}')" class="text-red-500 hover:text-red-700 text-xs font-bold"><i class="fa-solid fa-trash"></i></button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        // --- CRUD KELAS HANDLERS ---
+        function handleSaveClass(e) {
+            e.preventDefault();
+            const nameInput = document.getElementById('new-class-name');
+            const newName = nameInput.value.trim();
+            if(!newName) return;
+            
+            // Cek duplikat
+            if(classes.some(c => c.name.toLowerCase() === newName.toLowerCase())) {
+                Swal.fire('Error', 'Nama kelas sudah ada!', 'error');
+                return;
+            }
+
+            const payload = {
+                data: {
+                    id: 'cls_' + Date.now(),
+                    name: newName,
+                    description: 'Kelas ' + newName
+                }
+            };
+            sendToDatabase('saveClass', payload).then(success => {
+                if(success) nameInput.value = '';
+            });
+        }
+
+        function handleDeleteClass(id) {
+            Swal.fire({ title: 'Hapus Kelas?', text: 'Folder di Drive tidak akan terhapus otomatis demi keamanan file.', icon: 'warning', showCancelButton: true, confirmButtonColor: '#d33' })
+            .then((result) => {
+                if(result.isConfirmed) {
+                    sendToDatabase('deleteClass', { id: id });
+                }
+            });
+        }
+
+        // --- APPLY GLOBAL SETTINGS ---
         function applyGlobalSettings() {
-            // Update UI Nama Aplikasi
             if(appSettings.app_name) {
                 document.getElementById('sidebar-app-name').textContent = appSettings.app_name;
                 document.title = appSettings.app_name;
             }
             if(appSettings.app_subtitle) {
                 document.getElementById('sidebar-app-subtitle').textContent = appSettings.app_subtitle;
+            } else {
+                 document.getElementById('sidebar-app-subtitle').textContent = "Dashboard Siswa";
             }
             
-            // Handle Marquee
             const marqueeContainer = document.getElementById('marquee-container');
             const marqueeText = document.getElementById('marquee-text');
             if(appSettings.running_text && appSettings.running_text.trim() !== "") {
@@ -435,11 +722,9 @@
                 marqueeContainer.classList.add('hidden');
             }
 
-            // Isi Form Pengaturan dengan Data Database
             document.getElementById('set-app-name').value = appSettings.app_name || '';
             document.getElementById('set-app-subtitle').value = appSettings.app_subtitle || '';
             document.getElementById('set-running-text').value = appSettings.running_text || '';
-            // Jangan tampilkan password di form jika kosong, biar aman
             document.getElementById('set-admin-password').value = appSettings.admin_password || '';
         }
 
@@ -454,29 +739,56 @@
             sendToDatabase('saveSettings', { data: newData });
         }
 
-        // --- VERIFIKASI PASSWORD (DARI DATABASE) ---
+        // --- PASSWORD VERIFICATION ---
         function verifyPassword(e) { 
             e.preventDefault(); 
             const inputPass = document.getElementById('admin-password').value;
+            const target = document.getElementById('auth-target').value;
             
-            // Cek apakah settings sudah terload dari DB
-            if (!appSettings || Object.keys(appSettings).length === 0) {
-                 Swal.fire('Data Belum Siap', 'Sedang mengambil data dari server. Tunggu sebentar...', 'warning');
-                 return;
-            }
-
-            // Gunakan password dari DB, fallback ke '112233' jika kosong
             const validPass = appSettings.admin_password ? String(appSettings.admin_password) : '112233';
             
             if (inputPass === validPass) { 
                 closePasswordModal(); 
+                // Jika password benar, masuk ke settings (otomatis akses admin lms juga terbuka)
                 executeSwitch('settings'); 
             } else { 
                 Swal.fire({ icon: 'error', title: 'Akses Ditolak', text: 'Password Salah.' }); 
             } 
         }
 
-        // --- FUNGSI STANDAR LAINNYA ---
+        // --- HELPER: URL Validator ---
+        function isValidUrl(string) {
+            try {
+                if(!string || string.trim() === '') return false;
+                if(!string.match(/^https?:\/\//)) return false; 
+                new URL(string);
+                return true;
+            } catch (_) {
+                return false;
+            }
+        }
+
+        function showIframeError(isInvalidFormat = false) {
+             const errorDiv = document.getElementById('iframe-error');
+             const errorTitle = document.getElementById('error-title');
+             const errorMessage = document.getElementById('error-message');
+             const errorIcon = document.getElementById('error-icon');
+             
+             errorDiv.classList.remove('hidden');
+             loader.style.display = 'none';
+             
+             if(isInvalidFormat) {
+                 errorTitle.textContent = "URL Tidak Valid (404)";
+                 errorMessage.textContent = "Link yang Anda tuju formatnya salah atau kosong. Pastikan link dimulai dengan https://";
+                 errorIcon.className = "fa-solid fa-link-slash text-4xl text-red-500";
+             } else {
+                 errorTitle.textContent = "Tidak Dapat Memuat Halaman";
+                 errorMessage.textContent = "Website menolak ditampilkan (refused to connect) atau sedang offline.";
+                 errorIcon.className = "fa-solid fa-face-frown text-4xl text-gray-400";
+             }
+        }
+
+        // --- NAVIGATION LOGIC ---
         function refreshUI() {
             renderSidebar();
             renderHome();
@@ -485,26 +797,280 @@
             renderLMSList();
         }
 
+        function switchView(viewId) {
+            if (viewId === 'settings') { 
+                document.getElementById('auth-target').value = 'settings';
+                document.getElementById('password-modal').classList.remove('hidden'); 
+                document.getElementById('admin-password').value = ''; 
+                return; 
+            }
+            executeSwitch(viewId);
+        }
+
+        function executeSwitch(viewId) {
+            document.querySelectorAll('.nav-item').forEach(el => { el.classList.remove('active', 'bg-blue-600', 'text-white'); el.classList.add('hover:bg-slate-800'); el.querySelector('i').classList.add('text-slate-400'); });
+            const activeBtn = document.getElementById(`btn-${viewId}`);
+            if(activeBtn) { activeBtn.classList.add('active'); activeBtn.classList.remove('hover:bg-slate-800'); activeBtn.querySelector('i').classList.remove('text-slate-400'); }
+            
+            if(window.innerWidth < 1024) { document.getElementById('sidebar').classList.add('-translate-x-full'); document.getElementById('mobile-overlay').classList.add('hidden'); }
+            
+            ['view-home', 'view-iframe-wrapper', 'view-settings', 'view-lms'].forEach(id => document.getElementById(id).classList.add('hidden'));
+            mainIframe.src = ''; playlistSidebar.classList.add('hidden'); playlistToggleBtn.classList.add('hidden');
+            document.getElementById('iframe-error').classList.add('hidden');
+
+            if (viewId === 'home') { pageTitle.textContent = 'Dashboard Utama'; document.getElementById('view-home').classList.remove('hidden'); refreshUI(); }
+            else if (viewId === 'settings') { pageTitle.textContent = 'Pengaturan Admin'; document.getElementById('view-settings').classList.remove('hidden'); switchSettingsTab('lms'); refreshUI(); }
+            else if (viewId === 'lms') { 
+                pageTitle.textContent = 'E-Library / LMS'; 
+                document.getElementById('view-lms').classList.remove('hidden'); 
+                renderLMSLibrary(lmsLibraryData);
+            }
+            else {
+                const menuItem = menus.find(m => m.id === viewId);
+                if (menuItem) {
+                    let cleanTitle = menuItem.title;
+                    if(menuItem.title.includes(':')) cleanTitle = menuItem.title.split(':')[1].trim();
+                    pageTitle.textContent = cleanTitle; 
+                    document.getElementById('view-iframe-wrapper').classList.remove('hidden'); 
+                    
+                    const rawUrl = menuItem.url || "";
+                    playlistUrls = rawUrl.split(',').map(u => u.trim()).filter(u => u !== "");
+                    
+                    if (playlistUrls.length > 1) { 
+                         initPlaylist(playlistUrls); 
+                    } else {
+                        let finalUrl = playlistUrls[0] || "";
+                        if (!isValidUrl(finalUrl)) {
+                            showIframeError(true); 
+                            externalLink.href = "#";
+                        } else {
+                            loader.style.display = 'block'; 
+                            if (finalUrl.includes('youtube.com') || finalUrl.includes('youtu.be')) finalUrl = getYoutubeEmbedUrl(finalUrl);
+                            
+                            externalLink.href = finalUrl; 
+                            mainIframe.src = finalUrl; 
+                            
+                            mainIframe.onload = () => loader.style.display = 'none'; 
+                            mainIframe.onerror = () => { showIframeError(false); };
+                        }
+                    }
+                }
+            }
+        }
+
+        function renderLMSLibrary(data) {
+            const grid = document.getElementById('lms-file-grid');
+            grid.innerHTML = '';
+            
+            if (data.length === 0) {
+                grid.innerHTML = `<div class="col-span-full text-center py-10 text-gray-400"><i class="fa-solid fa-folder-open text-4xl mb-2"></i><p>Belum ada materi tersedia.</p></div>`;
+                return;
+            }
+
+            data.forEach(item => {
+                grid.innerHTML += `
+                    <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-100 hover:shadow-md transition group relative">
+                        <div class="flex justify-between mb-2">
+                            <span class="bg-blue-50 text-blue-600 text-xs px-2 py-1 rounded font-bold">${item.kelas}</span>
+                            <span class="text-xs text-slate-400">${new Date(item.date).toLocaleDateString()}</span>
+                        </div>
+                        <h3 class="font-bold text-slate-800 mb-4 line-clamp-2 group-hover:text-blue-600 transition" title="${item.name}">${item.name}</h3>
+                        <div class="flex gap-2">
+                            <button onclick="openPreview('${item.url}', '${item.name}')" class="flex-1 bg-slate-800 text-white text-sm py-2 rounded-lg font-bold hover:bg-slate-900 transition-all flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-eye"></i> Baca
+                            </button>
+                            <a href="${item.downloadUrl}" target="_blank" class="px-3 py-2 border rounded-lg hover:bg-slate-50 text-slate-500 flex items-center justify-center">
+                                <i class="fa-solid fa-download"></i>
+                            </a>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        function filterLMSMateri(category) {
+            if(category === 'Semua') {
+                renderLMSLibrary(lmsLibraryData);
+            } else {
+                const filtered = lmsLibraryData.filter(item => item.kelas === category);
+                renderLMSLibrary(filtered);
+            }
+            const btns = document.querySelectorAll('.filter-btn');
+            btns.forEach(btn => {
+                if(btn.textContent === category) {
+                    btn.className = "filter-btn px-4 py-1.5 rounded-full text-xs font-medium bg-blue-100 text-blue-700 border border-blue-200";
+                } else {
+                    btn.className = "filter-btn px-4 py-1.5 rounded-full text-xs font-medium bg-white text-gray-600 border hover:bg-gray-50";
+                }
+            });
+        }
+
+        function openPreview(url, title) {
+            document.getElementById('preview-title').textContent = title;
+            if(!isValidUrl(url)) {
+                 Swal.fire({ icon: 'error', title: 'Link Rusak', text: 'File ini tidak memiliki URL yang valid (404).' });
+                 return;
+            }
+            document.getElementById('preview-frame').src = url;
+            document.getElementById('pdf-viewer-modal').classList.remove('hidden');
+        }
+
+        function closePreview() {
+            document.getElementById('pdf-viewer-modal').classList.add('hidden');
+            document.getElementById('preview-frame').src = '';
+        }
+
+        // --- LMS ADMIN LOGIC (CRUD FILES) ---
+        function renderLMSAdminTable() {
+            const tbody = document.getElementById('lms-admin-table-body');
+            tbody.innerHTML = '';
+            lmsLibraryData.forEach(item => {
+                tbody.innerHTML += `
+                    <tr class="hover:bg-slate-50">
+                        <td class="px-4 py-3 font-medium text-slate-700">${item.name}</td>
+                        <td class="px-4 py-3"><span class="bg-gray-100 px-2 py-1 rounded text-xs text-gray-600">${item.kelas}</span></td>
+                        <td class="px-4 py-3 text-right">
+                            <button onclick="openRenameModal('${item.id}', '${item.name}')" class="text-orange-500 hover:text-orange-700 p-2 rounded mr-1" title="Rename"><i class="fa-solid fa-pen-to-square"></i></button>
+                            <button onclick="deleteLMSFile('${item.id}')" class="text-red-600 hover:bg-red-50 p-2 rounded transition-colors" title="Delete"><i class="fa-solid fa-trash"></i></button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        // --- RENAME FILE LOGIC ---
+        function openRenameModal(id, currentName) {
+            let cleanName = currentName.replace(/\.pdf$/i, "");
+            document.getElementById('rename-file-id').value = id;
+            document.getElementById('rename-file-name').value = cleanName;
+            document.getElementById('rename-modal').classList.remove('hidden');
+        }
+
+        function closeRenameModal() {
+            document.getElementById('rename-modal').classList.add('hidden');
+        }
+
+        function handleRenameFile(e) {
+            e.preventDefault();
+            const id = document.getElementById('rename-file-id').value;
+            const newName = document.getElementById('rename-file-name').value.trim();
+
+            if(!newName) return;
+
+            closeRenameModal();
+            Swal.fire({ title: 'Menyimpan...', didOpen: () => Swal.showLoading() });
+
+            fetch(GOOGLE_SCRIPT_URL, {
+                method: 'POST',
+                body: JSON.stringify({ action: 'renameLMSFile', id: id, newName: newName })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if(data.status === 'success') {
+                    Swal.fire('Sukses', 'Nama file berhasil diubah.', 'success');
+                    fetchLMSLibrary();
+                } else {
+                    Swal.fire('Error', data.message, 'error');
+                }
+            })
+            .catch(err => Swal.fire('Error', 'Gagal koneksi: ' + err, 'error'));
+        }
+
+        // --- UPLOAD LOGIC ---
+        function handleLMSUpload(e) {
+            e.preventDefault();
+            const file = document.getElementById('lms-upload-file').files[0];
+            const kelas = document.getElementById('lms-upload-class').value;
+            
+            if(!file) { Swal.fire('Error', 'Pilih file PDF!', 'warning'); return; }
+            if(!kelas) { Swal.fire('Error', 'Pilih kelas tujuan!', 'warning'); return; }
+
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = async function () {
+                const base64Content = reader.result.split(',')[1]; 
+                
+                Swal.fire({
+                    title: 'Mengupload ke Drive...',
+                    text: 'Mohon tunggu...',
+                    allowOutsideClick: false,
+                    didOpen: () => Swal.showLoading()
+                });
+
+                try {
+                    const response = await fetch(GOOGLE_SCRIPT_URL, {
+                        method: 'POST',
+                        body: JSON.stringify({
+                            action: 'uploadLMSFile',
+                            fileData: base64Content,
+                            fileName: file.name,
+                            mimeType: file.type,
+                            kelas: kelas
+                        })
+                    });
+                    const result = await response.json();
+
+                    if (result.status === 'success') {
+                        Swal.fire('Sukses', 'File berhasil diupload!', 'success');
+                        document.getElementById('lms-upload-form').reset();
+                        fetchLMSLibrary(); 
+                    } else {
+                        throw new Error(result.message);
+                    }
+                } catch (err) {
+                    console.error(err);
+                    Swal.fire('Gagal', 'Terjadi kesalahan saat upload: ' + err.message, 'error');
+                }
+            };
+        }
+
+        function deleteLMSFile(id) {
+            Swal.fire({ title: 'Hapus file ini?', text: 'File akan dipindah ke sampah Google Drive', icon: 'warning', showCancelButton: true, confirmButtonText: 'Ya, Hapus', confirmButtonColor: '#d33' })
+            .then(async (result) => {
+                if (result.isConfirmed) {
+                    Swal.fire({ title: 'Menghapus...', didOpen: () => Swal.showLoading() });
+                    try {
+                        const response = await fetch(GOOGLE_SCRIPT_URL, {
+                            method: 'POST',
+                            body: JSON.stringify({ action: 'deleteLMSFile', id: id })
+                        });
+                        const resData = await response.json();
+                        
+                        if(resData.status === 'success') {
+                            Swal.fire('Terhapus', 'File berhasil dihapus.', 'success');
+                            fetchLMSLibrary(); // Refresh
+                        } else {
+                            throw new Error(resData.message);
+                        }
+                    } catch(err) {
+                         Swal.fire('Gagal', 'Tidak dapat menghapus file: ' + err.message, 'error');
+                    }
+                }
+            });
+        }
+
+        // --- STANDARD UTILS ---
         function getMenuTimeStatus(menu) {
             const manualStatus = menu.status ? menu.status.toString().toLowerCase() : 'active';
-            if (manualStatus === 'inactive') return { code: 'manual_inactive', label: 'Non-Aktif (Manual)', color: 'gray', isActive: false };
+            if (manualStatus === 'inactive') return { code: 'manual_inactive', label: 'Non-Aktif', color: 'gray', isActive: false };
 
             const now = new Date();
             const currentTotalMinutes = (now.getHours() * 60) + now.getMinutes();
             const timeToMinutes = (timeStr) => {
                 if (!timeStr || typeof timeStr !== 'string' || !timeStr.includes(':')) return null;
                 const [h, m] = timeStr.split(':').map(Number);
+                if (isNaN(h) || isNaN(m)) return null; 
                 return (h * 60) + m;
             };
 
-            if (menu.auto_open && menu.auto_open !== "") {
+            if (menu.auto_open && menu.auto_open.trim() !== "") {
                 const openMins = timeToMinutes(menu.auto_open);
-                if (openMins !== null && currentTotalMinutes < openMins) return { code: 'not_open_yet', label: `Belum Buka (${menu.auto_open})`, color: 'yellow', isActive: false };
+                if (openMins !== null && currentTotalMinutes < openMins) return { code: 'not_open_yet', label: `Buka ${menu.auto_open}`, color: 'yellow', isActive: false };
             }
 
-            if (menu.auto_close && menu.auto_close !== "") {
+            if (menu.auto_close && menu.auto_close.trim() !== "") {
                 const closeMins = timeToMinutes(menu.auto_close);
-                if (closeMins !== null && currentTotalMinutes >= closeMins) return { code: 'closed', label: `Tutup (${menu.auto_close})`, color: 'red', isActive: false };
+                if (closeMins !== null && currentTotalMinutes >= closeMins) return { code: 'closed', label: `Tutup ${menu.auto_close}`, color: 'red', isActive: false };
             }
             return { code: 'active', label: 'Aktif', color: 'green', isActive: true };
         }
@@ -573,43 +1139,6 @@
             });
         }
 
-        function switchView(viewId) {
-            if (viewId === 'settings') { document.getElementById('password-modal').classList.remove('hidden'); document.getElementById('admin-password').value = ''; return; }
-            executeSwitch(viewId);
-        }
-
-        function executeSwitch(viewId) {
-            document.querySelectorAll('.nav-item').forEach(el => { el.classList.remove('active', 'bg-blue-600', 'text-white'); el.classList.add('hover:bg-slate-800'); el.querySelector('i').classList.add('text-slate-400'); });
-            const activeBtn = document.getElementById(`btn-${viewId}`);
-            if(activeBtn) { activeBtn.classList.add('active'); activeBtn.classList.remove('hover:bg-slate-800'); activeBtn.querySelector('i').classList.remove('text-slate-400'); }
-            if(window.innerWidth < 1024) { document.getElementById('sidebar').classList.add('-translate-x-full'); document.getElementById('mobile-overlay').classList.add('hidden'); }
-            ['view-home', 'view-iframe-wrapper', 'view-settings'].forEach(id => document.getElementById(id).classList.add('hidden'));
-            mainIframe.src = ''; playlistSidebar.classList.add('hidden'); playlistToggleBtn.classList.add('hidden');
-
-            if (viewId === 'home') { pageTitle.textContent = 'Dashboard Utama'; document.getElementById('view-home').classList.remove('hidden'); refreshUI(); }
-            else if (viewId === 'settings') { pageTitle.textContent = 'Pengaturan Admin'; document.getElementById('view-settings').classList.remove('hidden'); switchSettingsTab('lms'); refreshUI(); }
-            else {
-                const menuItem = menus.find(m => m.id === viewId);
-                if (menuItem) {
-                    let cleanTitle = menuItem.title;
-                    if(menuItem.title.includes(':')) cleanTitle = menuItem.title.split(':')[1].trim();
-                    pageTitle.textContent = cleanTitle; 
-                    document.getElementById('view-iframe-wrapper').classList.remove('hidden'); 
-                    loader.style.display = 'block'; iframeError.classList.add('hidden');
-                    const rawUrl = menuItem.url || "";
-                    playlistUrls = rawUrl.split(',').map(u => u.trim()).filter(u => u !== "");
-                    if (playlistUrls.length > 1) { initPlaylist(playlistUrls); } 
-                    else {
-                        let finalUrl = playlistUrls[0] || "";
-                        if (finalUrl.includes('youtube.com') || finalUrl.includes('youtu.be')) finalUrl = getYoutubeEmbedUrl(finalUrl);
-                        externalLink.href = finalUrl; mainIframe.src = finalUrl; 
-                        mainIframe.onload = () => loader.style.display = 'none'; 
-                        mainIframe.onerror = () => { loader.style.display = 'none'; iframeError.classList.remove('hidden'); };
-                    }
-                }
-            }
-        }
-
         function togglePlaylist() {
             const sidebar = document.getElementById('playlist-sidebar');
             const icon = document.getElementById('playlist-toggle-icon');
@@ -639,11 +1168,20 @@
             document.querySelectorAll('.playlist-item').forEach((btn, idx) => { if (idx === index) btn.classList.add('active'); else btn.classList.remove('active'); });
             playlistCounter.textContent = `${index + 1}/${playlistUrls.length}`;
             if (window.innerWidth < 768) togglePlaylist(); 
+            
+            document.getElementById('iframe-error').classList.add('hidden'); // Reset error
+            if (!isValidUrl(url)) {
+                 showIframeError(true);
+                 externalLink.href = "#";
+                 loader.style.display = 'none';
+                 return;
+            }
+
             loader.style.display = 'block';
             if (url.includes('youtube.com') || url.includes('youtu.be')) url = getYoutubeEmbedUrl(url);
             mainIframe.src = url; externalLink.href = playlistUrls[index]; 
             mainIframe.onload = () => loader.style.display = 'none';
-            mainIframe.onerror = () => { loader.style.display = 'none'; iframeError.classList.remove('hidden'); };
+            mainIframe.onerror = () => { showIframeError(false); };
         }
 
         function closePasswordModal() { document.getElementById('password-modal').classList.add('hidden'); }
@@ -651,25 +1189,37 @@
         function switchSettingsTab(tabName) { 
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active')); 
             document.getElementById(`tab-btn-${tabName}`).classList.add('active'); 
-            ['tab-content-menu', 'tab-content-announcement', 'tab-content-lms', 'tab-content-app'].forEach(id => document.getElementById(id).classList.add('hidden'));
-            document.getElementById(`tab-content-${tabName}`).classList.remove('hidden'); 
+            // Sembunyikan semua konten tab di settings
+            ['tab-content-menu', 'tab-content-announcement', 'tab-content-lms', 'tab-content-app', 'tab-content-lms-admin'].forEach(id => {
+                const el = document.getElementById(id);
+                if(el) el.classList.add('hidden');
+            });
+            
+            // Tampilkan tab yang dipilih
+            const targetContent = document.getElementById(`tab-content-${tabName}`);
+            if(targetContent) targetContent.classList.remove('hidden');
+
+            // Khusus tab admin E-Library, refresh tabelnya
+            if (tabName === 'lms-admin') {
+                renderLMSAdminTable();
+                updateClassDropdowns();
+            }
         }
 
         function toggleSidebar() { document.getElementById('sidebar').classList.toggle('-translate-x-full'); document.getElementById('mobile-overlay').classList.toggle('hidden'); }
         function toggleFullscreen() { if (!document.fullscreenElement) document.documentElement.requestFullscreen(); else if (document.exitFullscreen) document.exitFullscreen(); }
         function updateClock() { const now = new Date(); document.getElementById('digital-clock').textContent = now.toLocaleTimeString('id-ID', { hour12: false }); document.getElementById('current-date').textContent = now.toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'short', day: 'numeric' }); }
-        setInterval(updateClock, 1000);
-
+        
+        // --- FORM SAVERS ---
         function saveMenu(e) {
             e.preventDefault();
             const titleInput = document.getElementById('menu-title');
             const urlInput = document.getElementById('menu-url');
-            const urlValue = urlInput.value.trim();
-            if (!titleInput.value.trim() || !urlValue) { Swal.fire({ icon: 'warning', title: 'Data Belum Lengkap', text: 'Nama Menu dan URL wajib diisi!', confirmButtonColor: '#3085d6' }); return; }
+            if (!titleInput.value.trim() || !urlInput.value.trim()) { Swal.fire({ icon: 'warning', title: 'Data Belum Lengkap', text: 'Nama Menu dan URL wajib diisi!' }); return; }
             const data = {
                 id: document.getElementById('menu-edit-id').value || 'menu_' + Date.now(),
                 title: titleInput.value.trim(),
-                url: urlValue, 
+                url: urlInput.value.trim(), 
                 icon: document.getElementById('menu-icon').value,
                 color: document.getElementById('menu-color').value,
                 status: document.getElementById('menu-status').value,
@@ -685,7 +1235,7 @@
             const subject = document.getElementById('lms-subject').value.trim();
             const topic = document.getElementById('lms-topic').value.trim();
             const urlValue = document.getElementById('lms-url').value.trim();
-            if (!subject || !topic || !urlValue) { Swal.fire({ icon: 'warning', title: 'Data Kurang', text: 'Lengkapi form!', confirmButtonColor: '#3085d6' }); return; }
+            if (!subject || !topic || !urlValue) { Swal.fire({ icon: 'warning', title: 'Data Kurang', text: 'Lengkapi form!' }); return; }
             const combinedTitle = `${subject}: ${topic}`;
             let iconClass = 'fa-book';
             if (document.getElementById('lms-type').value === 'video') iconClass = 'fa-video';
