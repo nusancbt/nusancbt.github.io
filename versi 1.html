@@ -37,6 +37,15 @@
         .playlist-item.active .icon-play { opacity: 1; }
         .animate-fade-in { animation: fadeIn 0.3s ease-in-out; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        /* Task Styles */
+        .task-item.completed .task-title { text-decoration: line-through; color: #9ca3af; }
+        .task-item { transition: all 0.2s ease; }
+        .task-item:hover { transform: translateY(-2px); }
+        
+        /* Calculator Styles */
+        .calc-btn { transition: all 0.1s; }
+        .calc-btn:active { transform: scale(0.95); }
     </style>
 </head>
 <body class="bg-gray-100 h-screen overflow-hidden flex text-gray-800">
@@ -44,11 +53,45 @@
     <!-- Loading Screen -->
     <div id="app-loading" class="fixed inset-0 z-[60] bg-white flex flex-col items-center justify-center">
         <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-blue-600 mb-4"></div>
-        <p class="text-gray-600 font-medium">Please Wait...</p>
+        <p class="text-gray-600 font-medium">Loading...</p>
     </div>
 
     <!-- Mobile Overlay -->
     <div id="mobile-overlay" onclick="toggleSidebar()" class="fixed inset-0 bg-black opacity-50 z-20 hidden lg:hidden"></div>
+
+    <!-- Calculator Modal (Floating) -->
+    <div id="calculator-modal" class="fixed bottom-20 right-4 z-50 hidden animate-fade-in">
+        <div class="bg-slate-900 p-4 rounded-2xl shadow-2xl w-64 border border-slate-700">
+            <div class="flex justify-between items-center mb-4 border-b border-slate-700 pb-2">
+                <span class="text-white text-xs font-bold tracking-wider">KALKULATOR</span>
+                <button onclick="toggleCalculator()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <input type="text" id="calc-display" readonly class="w-full bg-slate-800 text-white text-right text-2xl p-3 rounded-lg mb-3 font-mono outline-none border border-slate-700" value="0">
+            <div class="grid grid-cols-4 gap-2">
+                <button onclick="calcClear()" class="calc-btn col-span-2 bg-red-500 hover:bg-red-600 text-white p-2 rounded-lg font-bold">AC</button>
+                <button onclick="calcAppend('/')" class="calc-btn bg-slate-700 hover:bg-slate-600 text-white p-2 rounded-lg font-bold">÷</button>
+                <button onclick="calcAppend('*')" class="calc-btn bg-slate-700 hover:bg-slate-600 text-white p-2 rounded-lg font-bold">×</button>
+                
+                <button onclick="calcAppend('7')" class="calc-btn bg-slate-800 hover:bg-slate-700 text-white p-2 rounded-lg font-bold">7</button>
+                <button onclick="calcAppend('8')" class="calc-btn bg-slate-800 hover:bg-slate-700 text-white p-2 rounded-lg font-bold">8</button>
+                <button onclick="calcAppend('9')" class="calc-btn bg-slate-800 hover:bg-slate-700 text-white p-2 rounded-lg font-bold">9</button>
+                <button onclick="calcAppend('-')" class="calc-btn bg-slate-700 hover:bg-slate-600 text-white p-2 rounded-lg font-bold">-</button>
+                
+                <button onclick="calcAppend('4')" class="calc-btn bg-slate-800 hover:bg-slate-700 text-white p-2 rounded-lg font-bold">4</button>
+                <button onclick="calcAppend('5')" class="calc-btn bg-slate-800 hover:bg-slate-700 text-white p-2 rounded-lg font-bold">5</button>
+                <button onclick="calcAppend('6')" class="calc-btn bg-slate-800 hover:bg-slate-700 text-white p-2 rounded-lg font-bold">6</button>
+                <button onclick="calcAppend('+')" class="calc-btn bg-slate-700 hover:bg-slate-600 text-white p-2 rounded-lg font-bold">+</button>
+                
+                <button onclick="calcAppend('1')" class="calc-btn bg-slate-800 hover:bg-slate-700 text-white p-2 rounded-lg font-bold">1</button>
+                <button onclick="calcAppend('2')" class="calc-btn bg-slate-800 hover:bg-slate-700 text-white p-2 rounded-lg font-bold">2</button>
+                <button onclick="calcAppend('3')" class="calc-btn bg-slate-800 hover:bg-slate-700 text-white p-2 rounded-lg font-bold">3</button>
+                <button onclick="calcResult()" class="calc-btn row-span-2 bg-blue-600 hover:bg-blue-700 text-white p-2 rounded-lg font-bold">=</button>
+                
+                <button onclick="calcAppend('0')" class="calc-btn col-span-2 bg-slate-800 hover:bg-slate-700 text-white p-2 rounded-lg font-bold">0</button>
+                <button onclick="calcAppend('.')" class="calc-btn bg-slate-800 hover:bg-slate-700 text-white p-2 rounded-lg font-bold">.</button>
+            </div>
+        </div>
+    </div>
 
     <!-- Password Modal -->
     <div id="password-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center modal-overlay">
@@ -140,10 +183,17 @@
                 <span class="text-sm font-medium">E-Library (LMS)</span>
             </button>
 
+            <!-- TASKS MENU ITEM (NEW) -->
+            <button onclick="switchView('tasks')" id="btn-tasks" class="nav-item w-full flex items-center gap-3 px-3 py-3 rounded-lg hover:bg-slate-800 transition-colors">
+                <i class="fa-solid fa-list-check w-5 text-center text-slate-400 transition-colors"></i>
+                <span class="text-sm font-medium">Agenda & Tugas</span>
+            </button>
+
             <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2 mt-6 px-3">Lainnya</div>
             <button onclick="switchView('settings')" id="btn-settings" class="nav-item w-full flex items-center gap-3 px-3 py-3 rounded-lg hover:bg-slate-800 transition-colors">
                 <i class="fa-solid fa-gear w-5 text-center text-slate-400 transition-colors"></i>
-                <span class="text-sm font-medium">Pengaturan</span>           
+                <span class="text-sm font-medium">Pengaturan Admin</span>
+            </button>     
         </nav>
     </aside>
 
@@ -158,6 +208,11 @@
                 <h2 id="page-title" class="text-lg font-bold text-gray-800">Dashboard Utama</h2>
             </div>
             <div class="flex items-center gap-4">
+                <!-- Calculator Toggle -->
+                <button onclick="toggleCalculator()" class="hidden md:flex items-center gap-2 px-3 py-1.5 bg-slate-100 text-slate-600 rounded-full text-xs font-bold hover:bg-slate-200 transition">
+                    <i class="fa-solid fa-calculator"></i> Hitung
+                </button>
+
                 <div class="hidden md:flex flex-col items-end mr-2">
                     <span id="digital-clock" class="text-sm font-mono font-bold text-blue-600">00:00:00</span>
                     <span id="current-date" class="text-xs text-gray-500">Senin, 1 Jan 2024</span>
@@ -183,6 +238,22 @@
 
             <!-- 1. HOME VIEW -->
             <div id="view-home" class="h-full overflow-y-auto p-4 lg:p-6 animate-fade-in custom-scrollbar">
+                
+                <!-- Welcome Banner (New) -->
+                <div class="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl p-6 text-white mb-6 shadow-lg relative overflow-hidden">
+                    <div class="relative z-10">
+                        <h2 class="text-2xl font-bold mb-1">Selamat Datang.! 👋</h2>
+                        <p class="text-blue-100 text-sm mb-4">Akses materi, kerjakan tugas, dan pantau jadwal pelajaranmu hari ini.</p>
+                        <div class="flex gap-3">
+                            <button onclick="switchView('tasks')" class="px-4 py-2 bg-white text-blue-600 rounded-lg text-sm font-bold shadow-md hover:bg-blue-50 transition"><i class="fa-solid fa-list-check mr-2"></i>Cek Tugas</button>
+                            <button onclick="switchView('lms')" class="px-4 py-2 bg-blue-700/50 text-white rounded-lg text-sm font-bold hover:bg-blue-700/70 transition backdrop-blur-sm"><i class="fa-solid fa-book-open mr-2"></i>Buka Pustaka</button>
+                        </div>
+                    </div>
+                    <div class="absolute right-0 bottom-0 opacity-10 transform translate-x-10 translate-y-10">
+                        <i class="fa-solid fa-graduation-cap text-9xl"></i>
+                    </div>
+                </div>
+
                 <div id="curfew-banner" class="hidden mb-6 bg-yellow-50 border-l-4 border-yellow-500 p-4 rounded-r shadow-sm transition-all duration-300">
                     <div class="flex items-center">
                         <div class="flex-shrink-0 text-yellow-500"><i class="fa-solid fa-clock text-2xl"></i></div>
@@ -265,7 +336,63 @@
                 </div>
             </div>
 
-            <!-- 4. SETTINGS VIEW -->
+            <!-- 4. NEW TASKS VIEW (Student Planner) -->
+            <div id="view-tasks" class="hidden h-full overflow-y-auto p-4 lg:p-6 bg-slate-50 custom-scrollbar animate-fade-in">
+                <div class="max-w-5xl mx-auto">
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <!-- Input Section -->
+                        <div class="lg:col-span-1">
+                            <div class="bg-white p-6 rounded-xl shadow-md border border-slate-200 sticky top-4">
+                                <h3 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2"><i class="fa-solid fa-pen-to-square text-blue-600"></i> Catat Tugas Baru</h3>
+                                <form onsubmit="handleAddTask(event)">
+                                    <div class="mb-3">
+                                        <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Mata Pelajaran</label>
+                                        <select id="task-subject" class="w-full px-3 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 outline-none text-sm">
+                                            <option value="Umum">Umum</option>
+                                            <option value="Matematika">Matematika</option>
+                                            <option value="Bahasa Indonesia">Bahasa Indonesia</option>
+                                            <option value="Bahasa Inggris">Bahasa Inggris</option>
+                                            <option value="IPA/Sains">IPA/Sains</option>
+                                            <option value="Kejuruan">Produktif/Kejuruan</option>
+                                        </select>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Judul Tugas</label>
+                                        <input type="text" id="task-title" class="w-full px-3 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 outline-none text-sm" placeholder="Cth: PR Halaman 52" required>
+                                    </div>
+                                    <div class="mb-4">
+                                        <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Deadline</label>
+                                        <input type="date" id="task-date" class="w-full px-3 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 outline-none text-sm" required>
+                                    </div>
+                                    <button type="submit" class="w-full bg-blue-600 text-white py-2 rounded-lg font-bold hover:bg-blue-700 transition-colors shadow-lg"><i class="fa-solid fa-plus mr-1"></i> Tambah ke Agenda</button>
+                                </form>
+                                <div class="mt-6 pt-4 border-t border-gray-100">
+                                    <h4 class="text-xs font-bold text-gray-400 uppercase mb-2">Statistik Tugas</h4>
+                                    <div class="flex justify-between text-sm mb-1"><span>Selesai</span> <span id="stat-completed" class="font-bold text-green-600">0</span></div>
+                                    <div class="flex justify-between text-sm"><span>Belum Selesai</span> <span id="stat-pending" class="font-bold text-orange-500">0</span></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- List Section -->
+                        <div class="lg:col-span-2 space-y-4">
+                            <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex justify-between items-center">
+                                <h3 class="font-bold text-slate-800">Daftar Agenda & PR</h3>
+                                <button onclick="clearCompletedTasks()" class="text-xs text-red-500 hover:text-red-700 font-medium">Hapus yang selesai</button>
+                            </div>
+                            <div id="task-list-container" class="space-y-3">
+                                <!-- Tasks rendered here -->
+                                <div class="text-center py-10 text-gray-400 bg-white rounded-xl border border-dashed border-gray-300">
+                                    <i class="fa-solid fa-clipboard-check text-4xl mb-3 opacity-50"></i>
+                                    <p>Belum ada tugas dicatat.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 5. SETTINGS VIEW -->
             <div id="view-settings" class="hidden h-full overflow-y-auto p-4 lg:p-6 bg-gray-50 custom-scrollbar">
                 <div class="max-w-7xl mx-auto pb-10">
                     <div class="flex border-b border-gray-200 mb-6 bg-white rounded-t-xl px-2 pt-2 shadow-sm overflow-x-auto">
@@ -396,11 +523,14 @@
                             <h3 class="text-lg font-bold text-gray-800 mb-4">Buat Pengumuman Baru</h3>
                             <form onsubmit="saveAnnouncement(event)" class="space-y-4">
                                 <input type="hidden" id="ann-edit-id">
+                                <!-- Input time disembunyikan agar otomatis -->
+                                <input type="hidden" id="ann-time">
+                                
                                 <div><label class="block text-sm font-medium text-gray-700 mb-1">Judul</label><input type="text" id="ann-title" class="w-full px-4 py-2 rounded-lg border border-gray-300 outline-none" required></div>
                                 <div><label class="block text-sm font-medium text-gray-700 mb-1">Isi Pesan</label><textarea id="ann-content" rows="3" class="w-full px-4 py-2 rounded-lg border border-gray-300 outline-none" required></textarea></div>
-                                <div class="grid grid-cols-2 gap-4">
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div><label class="block text-sm font-medium text-gray-700 mb-1">Tipe</label><select id="ann-type" class="w-full px-4 py-2 rounded-lg border border-gray-300 outline-none"><option value="info">Info Umum</option><option value="warning">Peringatan</option><option value="urgent">Penting</option></select></div>
-                                    <div><label class="block text-sm font-medium text-gray-700 mb-1">Waktu</label><input type="text" id="ann-time" class="w-full px-4 py-2 rounded-lg border border-gray-300 outline-none" placeholder="Cth: 1 Jam yang lalu"></div>
+                                    <div class="flex items-end pb-2 text-sm text-gray-500 italic"><i class="fa-solid fa-clock mr-2"></i> Waktu akan diatur otomatis saat diterbitkan.</div>
                                 </div>
                                 <button type="submit" id="btn-save-ann" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors shadow"><i class="fa-solid fa-paper-plane mr-2"></i> Terbitkan ke Database</button>
                             </form>
@@ -464,7 +594,7 @@
         // =============================================================
         // KONFIGURASI: GANTI URL DI BAWAH INI
         // =============================================================
-        const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby1AbNqh4-1FWfDT6YKkRCF5vvXfOQPnjQImvSvGX7Axr_GXxmGLA8pUokuEJVjtJ_u/exec';
+        const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx7JrypP6bBFdc7Uuq9GogxMMlsBlq0HXOsLyTWAcHCtmO1wQTAYe22Wzqj-9h98373/exec';
         // =============================================================
 
         // --- STATE MANAGEMENT ---
@@ -478,6 +608,9 @@
         
         // --- LMS DATA ---
         let lmsLibraryData = []; 
+
+        // --- TASKS DATA (LOCAL) ---
+        let studentTasks = JSON.parse(localStorage.getItem('student_tasks')) || [];
 
         // --- COLOR MAPS ---
         const gradients = { blue: 'from-blue-500 to-blue-600', green: 'from-emerald-500 to-emerald-600', purple: 'from-purple-500 to-purple-600', orange: 'from-orange-500 to-orange-600', red: 'from-red-500 to-red-600' };
@@ -504,16 +637,146 @@
 
         async function init() {
             updateClock();
-            setInterval(updateClock, 1000); // Tambahkan ini agar detik berjalan
+            setInterval(updateClock, 1000); 
             if (GOOGLE_SCRIPT_URL.includes('GANTI_DENGAN')) {
                 appLoading.innerHTML = '<div class="text-center p-4"><h3 class="text-xl font-bold text-red-600">Error Konfigurasi</h3><p>Anda belum memasukkan URL Google Script di dalam kode HTML.</p></div>';
                 return;
             }
             // Fetch All Data
             await fetchFromDatabase(false); 
-            fetchLMSLibrary(); // Ambil data file di background
+            fetchLMSLibrary(); 
+            renderTaskList(); // Render tasks
 
             setInterval(() => fetchFromDatabase(true), 10000); // Sync data sheet tiap 10s
+        }
+
+        // --- CALCULATOR LOGIC ---
+        function toggleCalculator() {
+            const modal = document.getElementById('calculator-modal');
+            modal.classList.toggle('hidden');
+        }
+
+        function calcAppend(val) {
+            const display = document.getElementById('calc-display');
+            if(display.value === '0') display.value = val;
+            else display.value += val;
+        }
+
+        function calcClear() {
+            document.getElementById('calc-display').value = '0';
+        }
+
+        function calcResult() {
+            const display = document.getElementById('calc-display');
+            try {
+                // Gunakan eval dengan hati-hati atau ganti dengan library math
+                display.value = eval(display.value) || 0;
+            } catch(e) {
+                display.value = 'Error';
+                setTimeout(calcClear, 1000);
+            }
+        }
+
+        // --- TASKS / AGENDA LOGIC (LOCAL STORAGE) ---
+        function handleAddTask(e) {
+            e.preventDefault();
+            const subject = document.getElementById('task-subject').value;
+            const title = document.getElementById('task-title').value;
+            const date = document.getElementById('task-date').value;
+
+            const newTask = {
+                id: Date.now(),
+                subject: subject,
+                title: title,
+                date: date,
+                completed: false
+            };
+
+            studentTasks.unshift(newTask); // Add to top
+            saveTasks();
+            renderTaskList();
+            e.target.reset();
+            // Set default date to today again if needed
+        }
+
+        function toggleTask(id) {
+            const task = studentTasks.find(t => t.id === id);
+            if(task) {
+                task.completed = !task.completed;
+                saveTasks();
+                renderTaskList();
+            }
+        }
+
+        function deleteTask(id) {
+            studentTasks = studentTasks.filter(t => t.id !== id);
+            saveTasks();
+            renderTaskList();
+        }
+
+        function clearCompletedTasks() {
+            studentTasks = studentTasks.filter(t => !t.completed);
+            saveTasks();
+            renderTaskList();
+        }
+
+        function saveTasks() {
+            localStorage.setItem('student_tasks', JSON.stringify(studentTasks));
+        }
+
+        function renderTaskList() {
+            const container = document.getElementById('task-list-container');
+            const statCompleted = document.getElementById('stat-completed');
+            const statPending = document.getElementById('stat-pending');
+            
+            container.innerHTML = '';
+            
+            // Stats
+            const completedCount = studentTasks.filter(t => t.completed).length;
+            const pendingCount = studentTasks.length - completedCount;
+            statCompleted.textContent = completedCount;
+            statPending.textContent = pendingCount;
+
+            if(studentTasks.length === 0) {
+                container.innerHTML = `<div class="text-center py-10 text-gray-400 bg-white rounded-xl border border-dashed border-gray-300"><i class="fa-solid fa-clipboard-check text-4xl mb-3 opacity-50"></i><p>Belum ada tugas dicatat.</p></div>`;
+                return;
+            }
+
+            // Sort: Pending first, then by date
+            studentTasks.sort((a, b) => {
+                if(a.completed === b.completed) return new Date(a.date) - new Date(b.date);
+                return a.completed ? 1 : -1;
+            });
+
+            studentTasks.forEach(task => {
+                const isLate = new Date(task.date) < new Date().setHours(0,0,0,0) && !task.completed;
+                const lateBadge = isLate ? `<span class="bg-red-100 text-red-600 text-[10px] px-2 py-0.5 rounded-full font-bold ml-2">Terlambat</span>` : '';
+                
+                let subjectColor = 'bg-gray-100 text-gray-600';
+                if(task.subject === 'Matematika') subjectColor = 'bg-blue-100 text-blue-600';
+                if(task.subject === 'Bahasa Indonesia') subjectColor = 'bg-yellow-100 text-yellow-700';
+                if(task.subject === 'IPA/Sains') subjectColor = 'bg-green-100 text-green-600';
+
+                container.innerHTML += `
+                    <div class="task-item ${task.completed ? 'completed opacity-60 bg-gray-50' : 'bg-white'} p-4 rounded-xl border border-gray-200 shadow-sm flex items-center justify-between group">
+                        <div class="flex items-center gap-3 overflow-hidden">
+                            <button onclick="toggleTask(${task.id})" class="flex-shrink-0 w-6 h-6 rounded-full border-2 ${task.completed ? 'bg-green-500 border-green-500 text-white' : 'border-gray-300 text-transparent hover:border-green-500'} flex items-center justify-center transition-colors">
+                                <i class="fa-solid fa-check text-xs"></i>
+                            </button>
+                            <div class="min-w-0">
+                                <h4 class="font-bold text-gray-800 text-sm truncate task-title">${task.title} ${lateBadge}</h4>
+                                <div class="flex items-center gap-2 mt-1">
+                                    <span class="text-[10px] font-bold px-2 py-0.5 rounded ${subjectColor}">${task.subject}</span>
+                                    <span class="text-xs text-gray-400 flex items-center"><i class="fa-regular fa-calendar mr-1"></i> ${new Date(task.date).toLocaleDateString('id-ID', {day: 'numeric', month: 'short'})}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <button onclick="deleteTask(${task.id})" class="text-gray-400 hover:text-red-500 p-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                    </div>
+                `;
+            });
         }
 
         // --- DATABASE FETCHING (SPREADSHEET) ---
@@ -776,6 +1039,32 @@
              }
         }
 
+        // --- HELPER: Time Ago ---
+        function timeAgo(dateParam) {
+            if (!dateParam) return null;
+            
+            const date = new Date(dateParam);
+            const now = new Date();
+            
+            // Fallback jika format tanggal tidak valid (misal: data lama teks manual)
+            if (isNaN(date.getTime())) {
+                return dateParam;
+            }
+            
+            const seconds = Math.floor((now - date) / 1000);
+            const minutes = Math.floor(seconds / 60);
+            const hours = Math.floor(minutes / 60);
+            const days = Math.floor(hours / 24);
+
+            if (seconds < 60) return "Baru saja";
+            if (minutes < 60) return `${minutes} menit yang lalu`;
+            if (hours < 24) return `${hours} jam yang lalu`;
+            if (days < 7) return `${days} hari yang lalu`;
+            
+            // Jika lebih dari seminggu, tampilkan tanggal
+            return date.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
+        }
+
         // --- NAVIGATION LOGIC ---
         function refreshUI() {
             renderSidebar();
@@ -802,7 +1091,7 @@
             
             if(window.innerWidth < 1024) { document.getElementById('sidebar').classList.add('-translate-x-full'); document.getElementById('mobile-overlay').classList.add('hidden'); }
             
-            ['view-home', 'view-iframe-wrapper', 'view-settings', 'view-lms'].forEach(id => document.getElementById(id).classList.add('hidden'));
+            ['view-home', 'view-iframe-wrapper', 'view-settings', 'view-lms', 'view-tasks'].forEach(id => document.getElementById(id).classList.add('hidden'));
             mainIframe.src = ''; playlistSidebar.classList.add('hidden'); playlistToggleBtn.classList.add('hidden');
             document.getElementById('iframe-error').classList.add('hidden');
 
@@ -812,6 +1101,11 @@
                 pageTitle.textContent = 'E-Library / LMS'; 
                 document.getElementById('view-lms').classList.remove('hidden'); 
                 renderLMSLibrary(lmsLibraryData);
+            }
+            else if (viewId === 'tasks') {
+                pageTitle.textContent = 'Agenda & Tugas';
+                document.getElementById('view-tasks').classList.remove('hidden');
+                renderTaskList();
             }
             else {
                 const menuItem = menus.find(m => m.id === viewId);
@@ -1147,7 +1441,7 @@
                 if (item.type === 'urgent') { colorClass = 'bg-red-100 text-red-600'; icon = 'fa-circle-exclamation'; }
                 const div = document.createElement('div');
                 div.className = 'flex gap-4 items-start p-2 rounded-lg hover:bg-gray-50 transition-colors';
-                div.innerHTML = `<div class="w-12 h-12 rounded-full ${colorClass} flex items-center justify-center flex-shrink-0"><i class="fa-solid ${icon}"></i></div><div><h4 class="font-semibold text-gray-800">${item.title}</h4><p class="text-sm text-gray-600 mt-1">${item.content}</p><span class="text-xs text-gray-400 mt-2 block"><i class="fa-regular fa-clock mr-1"></i> ${item.time}</span></div>`;
+                div.innerHTML = `<div class="w-12 h-12 rounded-full ${colorClass} flex items-center justify-center flex-shrink-0"><i class="fa-solid ${icon}"></i></div><div><h4 class="font-semibold text-gray-800">${item.title}</h4><p class="text-sm text-gray-600 mt-1">${item.content}</p><span class="text-xs text-gray-400 mt-2 block"><i class="fa-regular fa-clock mr-1"></i> ${timeAgo(item.time)}</span></div>`;
                 annList.appendChild(div);
             });
         }
@@ -1267,7 +1561,36 @@
         }
 
         function deleteMenu(id) { Swal.fire({ title: 'Hapus?', icon: 'warning', showCancelButton: true, confirmButtonColor: '#d33' }).then((r) => { if (r.isConfirmed) sendToDatabase('deleteMenu', { id: id }); }); }
-        function saveAnnouncement(e) { e.preventDefault(); const data = { id: document.getElementById('ann-edit-id').value || Date.now(), title: document.getElementById('ann-title').value, content: document.getElementById('ann-content').value, type: document.getElementById('ann-type').value, time: document.getElementById('ann-time').value || 'Baru saja' }; sendToDatabase('saveAnnouncement', { data: data }); document.getElementById('ann-edit-id').value = ''; document.getElementById('ann-title').value = ''; document.getElementById('ann-content').value = ''; }
+        
+        // Update Fungsi Save Announcement agar waktu otomatis
+        function saveAnnouncement(e) { 
+            e.preventDefault(); 
+            const editId = document.getElementById('ann-edit-id').value;
+            
+            // Logika waktu otomatis: 
+            // Jika edit, gunakan waktu lama (dari hidden input)
+            // Jika baru, gunakan waktu sekarang (new Date)
+            let timestamp = document.getElementById('ann-time').value;
+            if (!timestamp || !editId) {
+                timestamp = new Date().toISOString(); // Simpan sebagai format ISO standar
+            }
+
+            const data = { 
+                id: editId || Date.now(), 
+                title: document.getElementById('ann-title').value, 
+                content: document.getElementById('ann-content').value, 
+                type: document.getElementById('ann-type').value, 
+                time: timestamp // Kirim timestamp otomatis
+            }; 
+            
+            sendToDatabase('saveAnnouncement', { data: data }); 
+            
+            document.getElementById('ann-edit-id').value = ''; 
+            document.getElementById('ann-time').value = ''; // Reset hidden input
+            document.getElementById('ann-title').value = ''; 
+            document.getElementById('ann-content').value = ''; 
+        }
+
         function deleteAnnouncement(id) { Swal.fire({ title: 'Hapus?', icon: 'warning', showCancelButton: true }).then((r) => { if(r.isConfirmed) sendToDatabase('deleteAnnouncement', { id: id }); }); }
 
         function renderLMSList() {
@@ -1313,7 +1636,18 @@
                 document.getElementById('btn-save-lms').innerHTML = 'Update Materi';
             }
         }
-        function editAnnouncement(id) { const item = announcements.find(a => a.id == id); if(item) { document.getElementById('ann-edit-id').value = item.id; document.getElementById('ann-title').value = item.title; document.getElementById('ann-content').value = item.content; document.getElementById('ann-type').value = item.type; document.getElementById('ann-time').value = item.time; document.getElementById('btn-save-ann').innerHTML = 'Update Pengumuman'; } }
+        function editAnnouncement(id) { 
+            const item = announcements.find(a => a.id == id); 
+            if(item) { 
+                document.getElementById('ann-edit-id').value = item.id; 
+                document.getElementById('ann-title').value = item.title; 
+                document.getElementById('ann-content').value = item.content; 
+                document.getElementById('ann-type').value = item.type; 
+                // Simpan waktu asli di hidden input agar tidak hilang saat update
+                document.getElementById('ann-time').value = item.time; 
+                document.getElementById('btn-save-ann').innerHTML = 'Update Pengumuman'; 
+            } 
+        }
         function resetMenuForm() { document.getElementById('menu-edit-id').value = ''; document.getElementById('menu-title').value = ''; document.getElementById('menu-url').value = ''; document.getElementById('menu-status').value = 'active'; document.getElementById('menu-auto-close').value = ''; document.getElementById('menu-auto-open').value = ''; document.getElementById('btn-save-menu').innerHTML = '<i class="fa-solid fa-plus mr-2"></i> Simpan ke Database'; }
         function resetLMSForm() { document.getElementById('lms-edit-id').value = ''; document.getElementById('lms-subject').value = ''; document.getElementById('lms-topic').value = ''; document.getElementById('lms-url').value = ''; document.getElementById('lms-status').value = 'active'; document.getElementById('lms-auto-close').value = ''; document.getElementById('lms-auto-open').value = ''; document.getElementById('btn-save-lms').innerHTML = '<i class="fa-solid fa-plus-circle mr-2 text-lg"></i> Simpan Materi ke Database'; }
     </script>
