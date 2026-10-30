@@ -34,7 +34,7 @@ Sudah tersedia workflow otomatis di `.github/workflows/deploy.yml` dan konfigura
 4. Setiap `git push` berikutnya akan otomatis mem-build dan men-deploy aplikasi.
 
 ### 2. Netlify
-Sudah dilengkapi `netlify.toml` dan `public/_redirects`:
+Sudah dilengkapi `netlify.toml`:
 1. Masuk ke dashboard Netlify, klik **Add new site > Import an existing project**, lalu hubungkan repositori GitHub Anda (konfigurasi `npm run build` dan folder `dist` otomatis terdeteksi).
 2. Atau deploy manual dengan mengunggah hasil folder `dist/` setelah menjalankan `npm run build`.
 
@@ -43,11 +43,11 @@ Sudah dilengkapi `vercel.json`:
 1. Masuk ke dashboard Vercel, klik **Add New > Project**, lalu pilih repositori GitHub Anda.
 2. Klik **Deploy** (Framework Preset: `Vite`, Build Command: `npm run build`, Output Directory: `dist` otomatis diterapkan).
 
-### 4. Cloudflare Pages / Workers Static Assets
-Sudah dilengkapi `public/_redirects` dan `wrangler.jsonc`:
-- **Via Git Integration (Cloudflare Pages)**:
-  1. Buka **Workers & Pages > Create > Pages > Connect to Git**.
-  2. Set **Build command**: `npm run build` dan **Build output directory**: `dist`, lalu klik **Save and Deploy**.
+### 4. Cloudflare Workers / Pages
+Sudah dilengkapi `wrangler.jsonc` dengan `not_found_handling: "single-page-application"`:
+- **Via Git Integration (Cloudflare Workers & Pages)**:
+  1. Buka **Workers & Pages > Create > Connect to Git**.
+  2. Set **Build command**: `npm run build` dan jika menggunakan Pages set **Build output directory**: `dist`, lalu klik **Deploy**.
 - **Via Wrangler CLI**:
   ```bash
   npm run build
